@@ -1,5 +1,9 @@
 # DEAD ZONE: LAST STAND
 
+## [▶ Play DEAD ZONE: LAST STAND](https://deadzone-lyart.vercel.app/)
+
+Play the latest deployed version directly in your browser: **https://deadzone-lyart.vercel.app/**
+
 A third-person zombie survival adventure built with Three.js, vanilla JavaScript, Vite, and Web Audio. Push north through an abandoned city, loot enterable buildings, unlock weapons, and activate extraction. Characters, city geometry, effects, grenades, and music are procedural. No backend, API keys, or paid assets are required. Desktop keyboard and mouse required.
 
 ## Tech stack
