@@ -1,0 +1,7 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import * as THREE from 'three';
+import {findRoute,Navigation} from '../Navigation.js';
+
+test('route avoids obstacles and uses the doorway instead of crossing walls',()=>{const bounds={minX:-15,maxX:15,minZ:-20,maxZ:15};const obstacles=[{minX:-6,maxX:6,minZ:-10,maxZ:-9},{minX:-6,maxX:-5,minZ:-10,maxZ:2},{minX:5,maxX:6,minZ:-10,maxZ:2},{minX:-6,maxX:-2,minZ:1,maxZ:2},{minX:2,maxX:6,minZ:1,maxZ:2}];const path=findRoute(new THREE.Vector3(9,0,8),new THREE.Vector3(0,0,-4),obstacles,bounds,1);assert.ok(path.length>5);assert.ok(path.some(p=>Math.abs(p.x)<2&&p.z>=1&&p.z<=3));for(const p of path)assert.equal(obstacles.some(o=>p.x>o.minX-.5&&p.x<o.maxX+.5&&p.z>o.minZ-.5&&p.z<o.maxZ+.5),false);});
+test('navigation switches from the entrance to the chest after entry',()=>{const game={scene:new THREE.Scene(),state:'playing',player:{position:new THREE.Vector3(0,0,8)},mission:{index:0,looted:false,stage:{x:-28,z:-23},get target(){return new THREE.Vector3(-28,0,-23);}},world:{routeRooms:[{x:-28,z:-23,front:-22,side:-1}],obstacles:[]},zombies:[]};const nav=new Navigation(game);nav.update(0,true);assert.equal(nav.action,'ENTER LIT DOORWAY');assert.equal(nav.goal.x,-20);game.player.position.set(-26,0,-23);nav.update(0,true);assert.equal(nav.action,'OPEN GOLD SUPPLY CHEST');assert.equal(nav.goal.x,-26.3);assert.ok(nav.path.length>0);});
