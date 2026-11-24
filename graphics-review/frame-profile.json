@@ -1,0 +1,54 @@
+{
+  "environment": "Installed Chromium/Brave with SwiftShader software WebGL; no hardware FPS claim",
+  "method": "Fixed panorama. Four warmup frames followed by 24 requestAnimationFrame intervals. Texture bytes are estimates for referenced maps plus mip levels, not measured VRAM. HDR/depth/MSAA storage is a conservative allocation estimate.",
+  "results": [
+    {
+      "quality": "low",
+      "viewport": [
+        960,
+        540
+      ],
+      "samples": 24,
+      "rafMedianMs": 250,
+      "rafP95Ms": 266.7000000000007,
+      "allPassCalls": 501,
+      "allPassTriangles": 318480,
+      "referencedTextureEstimateMiB": 35.43229166666666,
+      "postTargetConservativeMiB": 0,
+      "shadowTargetConservativeMiB": 0,
+      "timerQueryAvailable": true
+    },
+    {
+      "quality": "balanced",
+      "viewport": [
+        960,
+        540
+      ],
+      "samples": 24,
+      "rafMedianMs": 333.2999999999993,
+      "rafP95Ms": 399.90000000000146,
+      "allPassCalls": 910,
+      "allPassTriangles": 448255,
+      "referencedTextureEstimateMiB": 35.43229166666666,
+      "postTargetConservativeMiB": 17.7978515625,
+      "shadowTargetConservativeMiB": 8,
+      "timerQueryAvailable": true
+    },
+    {
+      "quality": "high",
+      "viewport": [
+        960,
+        540
+      ],
+      "samples": 24,
+      "rafMedianMs": 350,
+      "rafP95Ms": 350,
+      "allPassCalls": 910,
+      "allPassTriangles": 448255,
+      "referencedTextureEstimateMiB": 35.43229166666666,
+      "postTargetConservativeMiB": 29.6630859375,
+      "shadowTargetConservativeMiB": 32,
+      "timerQueryAvailable": true
+    }
+  ]
+}

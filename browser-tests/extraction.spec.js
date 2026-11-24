@@ -1,5 +1,7 @@
 import {test,expect} from '@playwright/test';
 
+test.beforeEach(async({page},info)=>{if(!/model renders/.test(info.title))await page.addInitScript(()=>{localStorage.setItem('dead-zone-settings',JSON.stringify({quality:'low'}));});});
+
 async function launch(page){await page.goto('/');await page.waitForFunction(()=>!!window.__DEAD_ZONE__);await page.evaluate(()=>{HTMLCanvasElement.prototype.requestPointerLock=()=>Promise.resolve();window.__DEAD_ZONE__.renderer.setPixelRatio(.45);});await page.locator('#play').click();await page.locator('#intro-skip').click();await expect(page.locator('#intro-screen')).toBeHidden({timeout:15000});}
 
 test('final wave gates E boarding, cutscene animates departure and restart restores aircraft',async({page})=>{
@@ -13,7 +15,7 @@ test('final wave gates E boarding, cutscene animates departure and restart resto
 });
 
 test('rescue helicopter model renders at the extraction helipad',async({page})=>{
-  test.setTimeout(90000);const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/');await page.waitForFunction(()=>!!window.__DEAD_ZONE__);await page.evaluate(async()=>{const THREE=await import('/node_modules/.vite/deps/three.js'),g=window.__DEAD_ZONE__;g.state='inspection';g.ui.state('menu');document.getElementById('menu').classList.add('hidden');document.getElementById('menu-footer').classList.add('hidden');document.body.classList.remove('in-menu');g.player.mesh.visible=false;g.helicopter.setReady(true);g.helicopter.update(1);g.world.sun.position.z=-195;g.world.sun.target.position.z=-173;g.camera.position.set(1,6,-181);g.camera.lookAt(12,2,-173);g.renderer.setPixelRatio(1);g.scene.updateMatrixWorld(true);const hit=new THREE.Raycaster(new THREE.Vector3(12,2,-184),new THREE.Vector3(0,0,1),0,20).intersectObjects(g.world.solids,false)[0];if(!hit?.object.userData.helicopter)throw new Error('Aircraft hull did not block the ray');});await page.screenshot({path:'test-results/rescue-helicopter.png'});expect(errors).toEqual([]);
+  test.setTimeout(90000);const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/');await page.waitForFunction(()=>!!window.__DEAD_ZONE__);await page.evaluate(async()=>{const THREE=await import('/node_modules/.vite/deps/three.js'),g=window.__DEAD_ZONE__;g.state='inspection';g.ui.state('menu');document.getElementById('menu').classList.add('hidden');document.getElementById('menu-footer').classList.add('hidden');document.body.classList.remove('in-menu');g.player.mesh.visible=false;g.helicopter.setReady(true);g.helicopter.update(1);const pos=g.helicopter.group.position;g.world.sun.position.z=pos.z-22;g.world.sun.target.position.z=pos.z;g.camera.position.set(1,6,pos.z-8);g.camera.lookAt(12,2,pos.z);g.renderer.setPixelRatio(1);g.scene.updateMatrixWorld(true);const hit=new THREE.Raycaster(new THREE.Vector3(12,2,g.helicopter.group.position.z-11),new THREE.Vector3(0,0,1),0,20).intersectObjects(g.world.solids,false)[0];if(!hit?.object.userData.helicopter)throw new Error('Aircraft hull did not block the ray');});await page.screenshot({path:'test-results/rescue-helicopter.png'});expect(errors).toEqual([]);
 });
 
 test('supplied evacuation video plays after E boarding and completes into victory',async({page})=>{

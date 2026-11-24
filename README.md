@@ -6,17 +6,25 @@ Play the latest deployed version directly in your browser: **https://deadzone-ly
 
 A third-person zombie survival adventure built with Three.js, vanilla JavaScript, Vite, and Web Audio. Push north through an abandoned city, loot enterable buildings, unlock weapons, and activate extraction. Characters, city geometry, effects, grenades, and music are procedural. No backend, API keys, or paid assets are required. Desktop keyboard and mouse required.
 
+## Graphics update
+
+The game now has a nighttime survival-horror look: moonlit blue streets, darker fog, warm fire and objective lighting, and restrained red emergency beacons. A small survivor fill light keeps the player and weapon readable while the eight-light scene budget remains fixed. Every gun has its own reload pose and moving mechanism; the shotgun inserts shells one by one, with ammo increasing as each shell seats. All six guns retain their aiming, movement, recoil, and muzzle alignment.
+
+The local source also includes procedural environment reflections, separate color/normal/roughness maps, remodeled vehicles, refined survivor and infected details, dressed interiors, and three rendering presets. Balanced and High use `postprocessing` 6.39.6 for HDR rendering, multisample antialiasing, half-resolution ambient occlusion, thresholded bloom, subtle color treatment, vignette, and one final tone mapping pass. Performance renders directly. Gameplay, saves, the +20% Shift boost, the 1.6-second grenade fuse, both videos, and extraction are preserved.
+
+Open [the night and reload gallery](./graphics-review/night/index.html) through the development server for gameplay, buildings, infected, extraction, and all six reloads. The [earlier graphics comparison](./graphics-review/index.html) and [postprocessing comparison](./graphics-review/postprocessing.html) document the prior daytime renderer. See [GRAPHICS_NOTES.md](./GRAPHICS_NOTES.md) for rendering budgets, measurements, testing, and limitations. These are local source changes; the live link above is updated only when you deploy a new build.
+
 ## Tech stack
 
 | Layer | Technology | Purpose |
 | --- | --- | --- |
-| Rendering | Three.js 0.180 / WebGL | 3D world, procedural models, lighting, particles, animation, and raycasting |
+| Rendering | Three.js 0.180 / WebGL and pmndrs/postprocessing 6.39.6 | 3D world, procedural models, lighting, particles, animation, raycasting, and quality-scaled post effects |
 | Game logic | Vanilla JavaScript (ES modules) | Player controls, combat, zombie AI, missions, pathfinding, inventory, and extraction |
 | Interface | HTML5 and CSS3 | Menus, HUD, compass, maps, prompts, and cinematic overlays |
 | Audio and video | Web Audio API and HTML5 Video | Procedural music/SFX plus `intro.mp4` and `extraction.mp4` playback |
 | Tooling | Vite 7 and npm | Local development server, asset bundling, and production builds |
 | Testing | Node.js test runner and Playwright | Logic regression tests and browser-based gameplay checks |
-| Storage | `localStorage` | Saves the local personal-best score only |
+| Storage | `localStorage` | Settings, safe campaign checkpoints, completion unlock, and local scores |
 
 The game is entirely client-side: it has no server, database, authentication, analytics, or third-party gameplay API. Models, materials, textures, effects, and music are generated locally in code. Google Fonts are an optional visual enhancement; system fonts keep the game usable offline.
 
@@ -38,7 +46,7 @@ npm run preview       # Preview the production build locally
 npx playwright test   # Run browser tests (with npm run dev running separately)
 ```
 
-Browser tests use the installed Brave browser on macOS. Set `BROWSER_PATH` to another Chromium executable if needed. Dev-only game inspection is available through `window.__DEAD_ZONE__`; production builds omit it.
+Browser tests use the installed Brave browser on macOS. Set `BROWSER_PATH` to another Chromium executable if needed. QA disables optional online font requests and uses the performance preset for control checks; dedicated model/architecture checks retain normal lighting. Dev-only game inspection is available through `window.__DEAD_ZONE__`; production builds omit it.
 
 ## Controls
 
@@ -49,8 +57,11 @@ Browser tests use the installed Brave browser on macOS. Set `BROWSER_PATH` to an
 | Hold left mouse | Fire |
 | Hold right mouse | Zoom to aim with the centered crosshair; release to restore normal view |
 | Mouse wheel | Next / previous collected weapon |
-| 1–4 / Q | Select weapon / cycle collected weapons |
-| Shift | Sprint |
+| 1–6 / Q | Select weapon / cycle collected weapons |
+| V | Switch left / right shoulder camera |
+| U | Open the three-choice upgrade screen (pauses the run) |
+| F3 | Toggle the performance display |
+| Shift | Move 20% faster while held |
 | Space | Jump |
 | R | Reload |
 | E | Search the current objective cache or collect a nearby gun |
@@ -67,21 +78,36 @@ Right-click aiming smoothly narrows the field of view, brings the shoulder camer
 Follow the enlarged gold objective arrow at the top of the screen. Navigation routes around obstacles and guides you to the street-facing entrance first, then to the supply chest inside. The HUD map is 280 pixels wide on desktop, labels all enterable buildings, and draws your current route. Press **Tab** for the full city map with named objectives, entrance dots, chest symbols, weapon diamonds, enemies, and your heading. Tab or Esc closes it; gameplay pauses while it is open. Road and floor arrows are disabled. Each chapter requires both searching its cache with **E** and eliminating the specified number of infected. Supplies can be secured before finishing the fight. New destinations receive an ambush. You can keep moving while fighting; waves continue during the journey.
 
 1. **Ash Street Clinic** at (-28, -23): enter through the opening facing the street. Search the central cache, eliminate two infected, and collect the VX–9 SMG under the gold beacon.
-2. **North Block Armory** at (22, -69): search the cache, eliminate three infected, and unlock the BREACH–12 shotgun.
-3. **Relay Safehouse** at (-22, -114): recover the codes, eliminate three infected, and collect the M–60 LMG.
-4. **North Extraction** at (0, -172): activate the beacon with E to begin the final wave. Clear every live infected and every pending spawn, then follow the objective arrow to the rescue helicopter at (12, -173). Approach its open side door and press **E** to board. Victory appears after the evacuation sequence.
+2. **North Block Armory** at (22, -89): search the cache, eliminate three infected, and unlock the BREACH–12 shotgun.
+3. **Relay Safehouse** at (-22, -174): recover the codes, eliminate three infected, and collect the M–60 LMG.
+4. **North Extraction** at (0, -260): activate the beacon with E to begin the final wave. Clear every live infected and every pending spawn, then follow the objective arrow to the rescue helicopter at (12, -261). Approach its open side door and press **E** to board. Victory appears after the evacuation sequence.
 
 All three supply buildings have open, four-unit doorways, solid walls, furnished interiors, supplies, and overhead shelter. Look for **numbered ENTER signs** above their roofs and illuminated entrance frames (gold for the current objective, mint for other enterable buildings). The clinic has a rooftop medical cross, the armory has reinforced brick cladding and equipment crates, and the safehouse has a rooftop antenna and satellite dish. Their facades use different colors, canopies, and corner reinforcements. Weapon caches have tall **gold light columns**, glowing rings, and lights. Guns unlock when collected with E and remain available in the inventory. The starter rifle has a spare cache near the starting area. Each gun keeps its own magazine and reserve when switching; switching cancels its reload.
 
 The objective chest is a large strapped case with a glowing latch, gold ground ring, and a floating **SUPPLY CHEST [E]** label while inside the active building. Press E near it to open the hinged lid and collect supplies; the opened case stays open, its marker clears, and the objective changes to clearing remaining hostiles. All chest lids and markers reset on restart.
 
-Searching an objective grants 25 HP, 90 reserve rounds, and two grenades (subject to caps). Kills award 25 XP; completed intermediate chapters award 75 XP. Every 150 XP increases survivor level and restores 15 HP. The HUD shows XP, level, objective distance, task completion, and kills still needed.
+Searching an objective grants 25 HP, 90 reserve rounds, and two grenades (subject to caps). Kills award 25 XP; completed intermediate chapters award 75 XP. Every 150 XP increases survivor level, restores 15 HP, and grants a point. Press **U** to choose one of three upgrades; each upgrade has at most three ranks. Health, reload speed, stability, magazine capacity, damage, grenade capacity, headshot damage, and armor have explicit bonuses displayed in the menu. The HUD shows XP, level, objective distance, task completion, and kills still needed.
+
+## Districts, optional missions, and progression
+
+The northbound route now stretches from the evacuation perimeter to a landing zone near z = -260, crossing residential, commercial, industrial, relay/quarantine, and extraction districts. Cross streets lead to optional blue-lit buildings. These locations appear on the map after discovery; distant undiscovered loot stays hidden.
+
+| Optional location | Position | Task | Reward |
+| --- | --- | --- | --- |
+| Pharmacy | (26, -44) | Recover the officer keycard with E | Gold IRON–6 weapon cache and 100 XP |
+| Utility building | (-26, -130) | Activate generator; stay within 12 m for 20 seconds | Healing, grenades, and 100 XP |
+| Warehouse | (26, -211) | Shoot all three infected growths | Gold SENTINEL weapon cache and 100 XP |
+| Survivor shelter | (-26, -239) | E to rescue; escort the survivor to the northern beacon | Supplies and 100 XP |
+
+After a main chapter is completed, a checkpoint is saved once no infected are within 18 m and no grenade or toxic projectile effects are active. **Continue from Checkpoint** restores the next chapter, weapons/ammo, XP, upgrades, supplies, statistics, and optional mission completion. Active enemies and projectiles are reconstructed rather than serialized. Saving is optional when browser storage is unavailable. Settings include a two-click checkpoint reset.
+
+Settings and controls are available from the main menu and pause menu. Configure graphics quality, look/aim sensitivity, FOV, master/music/effects/cinematic volumes, crosshair color/size, camera shake, radio subtitles, reduced motion, and reduced flashes. Choose Story, Survivor, or Nightmare difficulty for the next run. Optional modifiers include Runner Outbreak, Ammo Scarcity (60 starting reserve), and Shotgun Only. Completing the campaign unlocks Endless Survival; local score records are saved at the end of a run.
 
 ## Helicopter evacuation and cutscene
 
 The rescue helicopter is parked beside the northern beacon on a marked helipad. It has a modeled cockpit/cabin, sliding side door, skids, tail boom, fins, spinning main/tail rotors, navigation lights, and cabin seats. Its fuselage blocks walking and bullets as part of the environment. The map labels it **HELI**.
 
-The final beacon starts an 18-enemy mixed final wave; existing survivors of earlier waves must also be eliminated. Distant enemies are repositioned near the landing zone so the final fight can finish locally. Boarding stays locked until the final queue and all living enemies are cleared. Normal waves stop at the final chapter. The door opens and rotors spool up when evacuation becomes ready; the compass and interaction prompt direct you to the boarding point.
+The final beacon starts an 18-enemy mixed final wave; existing survivors of earlier waves must also be eliminated. It includes six specialist infected and the **Mutated Alpha**, which calls reinforcements at 70% and 35% health, spits toxic projectiles, and accelerates in its final phase. Only distant, unreachable enemies outside the camera view qualify for relocation. Boarding stays locked until the final queue and all living enemies are cleared. Normal waves stop at the final chapter. The door opens and rotors spool up when evacuation becomes ready; the compass and interaction prompt direct you to the boarding point.
 
 If neither supported movie is present, or playback fails, pressing E plays an approximately ten-second in-engine cutscene: the survivor walks up the step into the cabin, the door closes, rotors accelerate, and the helicopter rises and flies away. Gameplay input, enemy attacks, survival time and spawning are suspended during the sequence. Esc or the cutscene skip button completes evacuation early. Restart restores the parked helicopter, visible player, closed door, and locked boarding state.
 
@@ -99,20 +125,24 @@ If neither supported movie is present, or playback fails, pressing E plays an ap
 | VX–9 SMG | 40 | 15 | 11.8 | 1.6 s |
 | BREACH–12 shotgun | 8 | 13 × 8 pellets | 1.25 | 2.7 s |
 | M–60 LMG | 60 | 32 | 6.9 | 3.5 s |
+| SENTINEL marksman rifle | 12 | 70 | 2.2 | 2.5 s |
+| IRON–6 revolver | 6 | 65 | 2.1 | 2.3 s |
+
+The marksman rifle and revolver are semi-automatic: release and press the trigger for each shot. Headshots deal double base damage before upgrades; distance falloff applies beyond the effective range. Frontal tank armor and riot shields absorb damage, encouraging flanking. Hit markers distinguish hits, headshots, armor, and kills. Shell casings, impacts, and trails use bounded reusable effect pools.
 
 The shotgun has a 32-unit range and pellet spread; automatic weapons have different range, spread, and recoil. Bullets originate at the visible barrel, and cover blocks them. The weapon is enlarged and held forward on the right side of the body. Both hands follow the gun using a two-bone pose while it aims. Gun, body, and camera recoil recover smoothly. Movement uses acceleration and deceleration, articulated knees and hips, alternating recovery strides, shoulder sway, gentle body bob, a responsive weapon carry, and camera smoothing. Walking remains 4.8 units/second. Holding Shift while moving increases speed by **20%**, to **5.76 units/second**, with a smoothly blended running pose.
 
-Every wave includes all five zombie types, including wave 1: shambler (75 HP), runner (50 HP), armored tank (225 HP), crawler (40 HP), and bloater (150 HP). Waves now have 50% more infected: 8, 12, and 18 for the opening waves, then 24, 30, and six more per subsequent wave. Fractional counts are rounded up. Spawns occur away from the survivor in clear spaces. Local obstacle steering and separation keep AI lightweight; complex corners can delay enemies.
+Every wave includes all five zombie types, including wave 1: shambler (75 HP), runner (50 HP), armored tank (225 HP), crawler (40 HP), and bloater (150 HP). Waves now have 50% more infected: 8, 12, and 18 for the opening waves, then 24, 30, and six more per subsequent wave. Fractional counts are rounded up. Spawns occur away from the survivor in clear spaces. The six specialists—Screamer, Brute, Spitter, Stalker, Riot, and Exploder—are eligible from wave one at lower weights. A shared navigation field routes crowds through openings; spatial hashing limits nearby separation checks. AI uses idle, investigate, chase, search, flank, windup/attack, stagger, and dead states. Gunfire and explosions alert nearby enemies. Far-away AI updates less often, and 42 simultaneous live spawns cap crowd load while queued enemies remain pending.
 
-Walk near health kits (+30 HP), ammo (+60 reserve), adrenaline (+50% speed for 12 seconds), or grenade bundles (+2 grenades). Supplies also drop from defeated infected. Full health/ammo/grenade pickups remain until useful. Maximum reserve ammunition is 360 per gun; maximum grenades is six.
+Walk near health kits (+30 HP), ammo (+60 reserve), adrenaline (+50% speed for 12 seconds), or grenade bundles (+2 grenades). Supplies also drop from defeated infected. Full health/ammo/grenade pickups remain until useful. Maximum reserve ammunition is 360 per gun; base grenade capacity is six, upgradable to nine.
 
 ## Grenades
 
-Start with two grenades. **Hold G** to show a gold ballistic arc and landing/detonation marker. Aim with the mouse and move to change the release point. **Release G** to throw; a grenade is spent only on release. Grenades have a **1.6-second fuse** after release. The render loop catches up short frame stalls in bounded physics steps so low frame rates do not unnecessarily stretch gameplay timers. The thrown grenade and its battlefield pickup share a segmented metal shell, safety lever, pull ring, and fuse collar. They stop at the ground or solid geometry and explode within a seven-unit radius, dealing distance-scaled damage to zombies. Cover blocks blast damage. The preview and thrown projectile use the same gravity and collision routine. Preview stops at first impact or fuse expiry. Grenades do not cause player self-damage. Pausing freezes thrown grenades and cancels the preview. Explosions layer a white-hot flash, expanding fire puffs, drifting smoke, sparks, flying fragments, a ground shockwave, a short light pulse, and distance-scaled camera shake. Smoke clears after roughly 2.35 seconds; restart disposes every projectile and effect.
+Start with two grenades. **Hold G** to show a gold ballistic arc and landing/detonation marker. Aim with the mouse and move to change the release point. **Release G** to throw; a grenade is spent only on release. Grenades have a **1.6-second fuse** after release. The render loop catches up short frame stalls in bounded physics steps so low frame rates do not unnecessarily stretch gameplay timers. The thrown grenade and its battlefield pickup share a segmented metal shell, safety lever, pull ring, and fuse collar. They bounce against walls and ground, lose energy, settle, and explode within a seven-unit radius, dealing distance-scaled damage to zombies. Cover blocks blast damage. The preview and thrown projectile use the same gravity and collision routine. The preview includes bounces and ends at the predicted detonation point. Both preview and live flight use the same 0.01-second simulation steps. Grenades do not cause player self-damage. Pausing freezes thrown grenades and cancels the preview. Explosions layer a white-hot flash, expanding fire puffs, drifting smoke, sparks, flying fragments, a ground shockwave, a short light pulse, and distance-scaled camera shake. Smoke clears after roughly 2.35 seconds; restart disposes every projectile and effect.
 
 ## Safe zone
 
-Red lights and ground markings indicate the safe corridor. Leaving x = -38…38, z = -184…26 causes **10 HP damage every second**, after a one-second grace period. The warning tells you to return; damage stops on reentry. A larger outer collision boundary prevents leaving the generated ground. The northbound route extends beyond the original square arena.
+Red lights and ground markings indicate the safe corridor. Leaving x = -38…38, z = -272…26 causes **10 HP damage every second**, after a one-second grace period. The warning tells you to return; damage stops on reentry. A larger outer collision boundary prevents leaving the generated ground. The northbound route extends beyond the original square arena.
 
 ## Audio
 
@@ -132,13 +162,28 @@ Architecture.js         Beveled facades, instanced window frames, roof/interior 
 Weapons.js              Weapon specs, gun models, resource disposal
 Zombie.js               Enemy variants and AI
 World.js                City, detailed buildings, animated chests, collision, supplies
-Surfaces.js             Reusable procedural brick, concrete, asphalt, wood textures
+Surfaces.js             World-space surface UVs and shared material assignment
+MaterialLibrary.js      Cached 256px color, normal and roughness maps
+Graphics.js             Sky/IBL, presets, contact shadows and library-based HDR composer
+EnvironmentArt.js       Vehicles, room/district dressing, smoke and rotor dust
 Navigation.js           Obstacle-aware pathfinding and entrance goals
 MapRenderer.js          Labeled local and full city maps
 Mission.js              Objectives, XP/levels, hazard damage, final-wave boarding gate
 Helicopter.js           Rescue aircraft, helipad, cabin door and rotor animation
 Extraction.js           Boarding/takeoff sequence and optional extraction.mp4 playback
 Grenades.js             Preview, ballistic flight, collision, 1.6-second fuse
+GrenadePhysics.js       Shared fixed-step bouncing simulation
+CameraRig.js            Camera-volume collision and safe smoothing
+CombatEffects.js        Reusable particle, shell, and tracer pools
+EnemyNavigation.js      Shared crowd flow field and sight checks
+SpatialHash.js          Nearby-enemy lookup
+EnemyHazards.js         Toxic projectiles, acid pools, exploder damage
+Districts.js            Optional interiors, missions, exploration, radio subtitles
+Campaign.js             Upgrade choices, checkpoints, continuation, replay unlocks
+Settings.js             Persistent settings and accessible controls panel
+Storage.js              Versioned checkpoint validation and storage helpers
+Statistics.js           Accuracy, kills, headshots, damage and score
+Difficulty.js           Story / Survivor / Nightmare balance
 GrenadeModel.js         Segmented shell, safety spoon, collar and pull ring
 BlastEffect.js          Fire, flash, smoke, sparks, fragments, shockwave, cleanup
 Combat.js               Raycast shooting, ammo, inventory, sound effects
@@ -150,15 +195,17 @@ tests/                  Gameplay and adventure regression tests
 browser-tests/          Browser controls and full-route checks
 ```
 
-The player uses approximately 60,000 triangles up close, including rounded armor, contoured limbs, modeled fingers, helmet trim, communication gear, straps, pouches, boot details, and a refined rifle. Zombies use roughly 43,000–56,000 triangles each up close, with smoother anatomy, sculpted faces, nails/teeth, and type-specific armor or growths. Mottled skin and woven fabric maps add surface detail. Their articulated arm and leg pivots, forward reach, and weapon grip placement are preserved.
+The player has detailed articulated geometry up close, including rounded armor, contoured limbs, modeled fingers, helmet trim, communication gear, straps, pouches, boot details, and a refined rifle. Zombie complexity varies by class and detail level, with smoother anatomy, sculpted faces, nails/teeth, and type-specific armor or growths. Mottled skin and woven fabric maps add surface detail. Their articulated arm and leg pivots, forward reach, and weapon grip placement are preserved.
 
-Distant zombies switch to simplified geometry beyond 32 units and return to full detail within 26 units. Hidden cosmetic details are excluded from raycasts; both geometry levels still take damage. Buildings use beveled structural walls plus genuine window frames, mullions, sills, downpipes, flange rings, rooftop tanks and ventilators. Repeated window parts use instancing; rigid decorative geometry is batched by material. Facade accessories reduce beyond 75 units while the textured building shell remains visible. Supply rooms also have framed glass, shelving, radiator fins, light fittings, and clinic/armory/relay-specific equipment. Decorative props preserve the existing doorway and chest approach paths.
+Graphics presets set zombie detail distance to 20, 30, or 42 units, with six units of hysteresis to avoid constant switching. Hidden cosmetic details are excluded from raycasts; both geometry levels still take damage. Buildings use beveled structural walls plus genuine window frames, mullions, sills, downpipes, flange rings, rooftop tanks and ventilators. Repeated window parts use instancing; rigid decorative geometry is batched by material. Facade accessories reduce beyond 75 units while the textured building shell remains visible. Supply rooms also have framed glass, shelving, radiator fins, light fittings, and clinic/armory/relay-specific equipment. Decorative props preserve the existing doorway and chest approach paths.
 
-Building, road, and chest surfaces use locally generated 512-pixel tileable textures, with grain, mortar, cracks, staining, and bump detail. Tall buildings have facade trim, canopies and reinforced corners. These surfaces share cached materials and texture maps; no external texture downloads are needed.
+Building, road, chest, character, and equipment surfaces use shared, locally generated 256-pixel PBR tiles. Color maps use sRGB; normal and roughness maps remain linear data. Grain, mortar depth, cracks, fabric weave, pores, and metal wear use separate channels. Tall buildings have facade trim, canopies and reinforced corners. These surfaces share cached materials and texture maps; no external texture downloads are needed.
 
-Optional Google Fonts enhance typography when online; system fallback fonts work offline. Required game resources are bundled in dist. A fixed pool of eight nearby point lights preserves local lighting without recompiling every material when a gun pickup is collected. Device pixel ratio is capped at 1.6; shadows use one sun light that follows the survivor. Performance depends on hardware and active enemy count. Restart resets health, inventory, grenades, thrown objects, enemies, loot, XP, and route progression without refreshing.
+Optional Google Fonts enhance typography when online; system fallback fonts work offline. Required game resources are bundled in dist. A fixed pool of eight nearby point lights preserves local lighting without recompiling every material when a gun pickup is collected. Device pixel ratio is capped by the selected preset; shadows use one sun light that follows the survivor. Performance uses direct rendering without a post target. Balanced and High use the HDR composer and effect stack described above. Performance depends on hardware and active enemy count. Restart resets health, inventory, grenades, thrown objects, enemies, loot, XP, and route progression without refreshing.
 
 ## Manual testing checklist
+
+Automated validation includes 47 logic tests and 22 Chromium test cases. Implementation details, measurements, verification scope, and practical limits are recorded in [UPGRADE_NOTES.md](./UPGRADE_NOTES.md).
 
 - [ ] Enter the game; move, aim, sprint, jump, fire, and reload.
 - [ ] Hold right mouse to zoom, aim and fire through the centered reticle; release to zoom out.

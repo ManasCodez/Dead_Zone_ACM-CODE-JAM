@@ -1,5 +1,7 @@
 import * as THREE from 'three';
+import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {Helicopter} from './Helicopter.js';
+import {createVehicle} from './EnvironmentArt.js';
 import {Architecture} from './Architecture.js';
 import {roundedBox} from './Geometry.js';
 import {createGrenadeModel} from './GrenadeModel.js';
@@ -35,19 +37,21 @@ export function resolveCollision(position, radius, obstacles, limit = ARENA_SIZE
 
 export class World {
   constructor(scene) {
-    this.bounds={minX:-60,maxX:60,minZ:-196,maxZ:60};this.scene = scene; this.obstacles = []; this.solids = []; this.lamps = []; this.pickups = []; this.weaponPickups=[];
+    this.bounds={minX:-60,maxX:60,minZ:-286,maxZ:60};this.scene = scene; this.obstacles = []; this.solids = []; this.lamps = []; this.pickups = []; this.weaponPickups=[];
     this.architecture=new Architecture(scene);this.surfaces=new Surfaces();this.materials = new Map(); this.seed = 713;
     this.build();this.buildRoute();this.helicopter=new Helicopter(this);this.initLightPool();
   }
   initLightPool(){const lights=[];this.scene.traverse(o=>{if(o.isPointLight)lights.push(o);});this.lightSources=lights.map(light=>{light.removeFromParent();return {light};});this.lightPool=Array.from({length:8},()=>{const light=new THREE.PointLight('#ffffff',0,12,2);light.name='pooled-environment-light';this.scene.add(light);return light;});this.updateLightPool(new THREE.Vector3(0,0,8));}
   updateLightPool(position){const ranked=this.lightSources.map(source=>{const p=source.light.position.clone();if(source.anchor)source.anchor.localToWorld(p);return {source,position:p,distance:p.distanceToSquared(position)};}).sort((a,b)=>a.distance-b.distance);this.lightPool.forEach((light,i)=>{const nearest=ranked[i];if(!nearest){light.intensity=0;return;}const source=nearest.source.light;light.position.copy(nearest.position);light.color.copy(source.color);light.intensity=source.intensity;light.distance=source.distance;light.decay=source.decay;});}
   random() { this.seed = (this.seed * 1664525 + 1013904223) >>> 0; return this.seed / 4294967296; }
+  optimizeStatic(){const buckets=new Map(),collision=new Set(this.solids);this.scene.updateMatrixWorld(true);for(const mesh of [...this.scene.children]){if(!mesh.isMesh||mesh.isInstancedMesh||mesh.material.transparent||!mesh.geometry.attributes.normal||!mesh.geometry.attributes.uv)continue;const key=`${mesh.material.uuid}:${Math.floor(mesh.position.x/24)}:${Math.floor(mesh.position.z/36)}`;if(!buckets.has(key))buckets.set(key,{material:mesh.material,parts:[]});const geometry=mesh.geometry.index?mesh.geometry.toNonIndexed():mesh.geometry.clone();geometry.applyMatrix4(mesh.matrixWorld);buckets.get(key).parts.push(geometry);if(collision.has(mesh))mesh.visible=false;else{this.scene.remove(mesh);mesh.geometry.dispose();}}for(const {material,parts} of buckets.values()){const mesh=new THREE.Mesh(mergeGeometries(parts),material);mesh.name='batched-city-cell';mesh.castShadow=true;mesh.receiveShadow=true;this.scene.add(mesh);parts.forEach(p=>p.dispose());}}
   mat(color, extra = {}) { const key = color + JSON.stringify(extra); if (!this.materials.has(key)) this.materials.set(key, new THREE.MeshStandardMaterial({color, roughness:.88, ...extra})); return this.materials.get(key); }
   box(x,y,z,w,h,d,color,collide=false,extra={}) {
-    const mesh = new THREE.Mesh((h>=3&&Math.max(w,d)>=3?roundedBox(w,h,d,3,Math.min(.12,Math.min(w,h,d)*.12)):new THREE.BoxGeometry(w,h,d)),this.mat(color,extra));
+    const mesh = new THREE.Mesh((h>=3&&Math.max(w,d)>=3?roundedBox(w,h,d,1,Math.min(.12,Math.min(w,h,d)*.12)):new THREE.BoxGeometry(w,h,d)),this.mat(color,extra));
+    if(!collide&&h>=1.4&&h<=1.8&&Math.min(w,d)<.12&&Math.max(w,d)>1)mesh.material=this.mat('#637b86',{roughness:.24,metalness:.2,envMapIntensity:1.2,...extra});
     mesh.position.set(x,y,z); mesh.castShadow=w>.5&&h>.5&&d>.5; mesh.receiveShadow=true; this.scene.add(mesh);
-    if(h>=6&&Math.max(w,d)>=8)this.surfaces.apply(mesh,'brick',color);else if(h>=3&&Math.max(w,d)>=3)this.surfaces.apply(mesh,'concrete',color);else if(Math.max(w,d)>=20&&h<.4)this.surfaces.apply(mesh,'asphalt',color);
-    if (collide) { this.obstacles.push({minX:x-w/2,maxX:x+w/2,minZ:z-d/2,maxZ:z+d/2}); this.solids.push(mesh); }
+    if(h>=6&&Math.max(w,d)>=8)this.surfaces.apply(mesh,'brick',color);else if(h>=3&&Math.max(w,d)>=3)this.surfaces.apply(mesh,'concrete',color);else if(Math.max(w,d)>=20&&h<.4)this.surfaces.apply(mesh,w>=120||w<3?'concrete':'asphalt',color);
+    if (collide) { this.obstacles.push({minX:x-w/2,maxX:x+w/2,minY:y-h/2,maxY:y+h/2,minZ:z-d/2,maxZ:z+d/2}); this.solids.push(mesh); }
     return mesh;
   }
   cylinder(x,y,z,r,h,color) { const m = new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,32), this.mat(color));m.position.set(x,y,z);m.castShadow=true;this.scene.add(m);return m; }
@@ -62,9 +66,9 @@ export class World {
     for (let n=-50;n<=50;n+=7) {this.box(-1,.045,n,.11,.015,3,'#b5a57a');this.box(1,.045,n,.11,.015,3,'#b5a57a'); if(Math.abs(n)>13)this.box(n,.045,4,3,.015,.17,'#aba88e');}
     for (let side of [-1,1]) {this.box(side*11.3,.08,0,2.5,.2,110,'#62675e');for(let z=-49;z<52;z+=3)this.box(side*11.3,.19,z,2.4,.012,.025,'#424d47');}
     for (let x=-46;x<=46;x+=18) for (let z=-43;z<=47;z+=20) {
-      if (Math.abs(x)<14 || Math.abs(z-4)<13 || (x===-28&&z===-23)) continue;
+      if (Math.abs(x)<14 || Math.abs(z-4)<13 || (x===-28&&z===-23) || (x===26&&z===-43)) continue;
       const w=11+this.random()*4,d=11+this.random()*4,h=9+this.random()*20;
-      const color=['#555d55','#62675d','#474f4d','#6e7061'][Math.floor(this.random()*4)];
+      const color=['#747777','#8c8177','#687c87','#998a7b'][Math.floor(this.random()*4)];
       this.box(x,h/2,z,w,h,d,color,true);this.box(x,h+.2,z,w+.4,.5,d+.4,'#353f3b');
       // Uneven shattered parapets, exposed steel and boarded windows.
       if (x<0 || z>20) {
@@ -108,7 +112,7 @@ export class World {
     }
     for(const [x,z] of [[-13,-6],[13,11],[-13,30]]) {
       this.cylinder(x,.55,z,.46,1.1,'#744335');
-      const fire=new THREE.Mesh(new THREE.IcosahedronGeometry(.3,0),this.mat('#ffc66a',{emissive:'#ff7c24',emissiveIntensity:3}));fire.position.set(x,1.3,z);this.scene.add(fire);
+      const fire=new THREE.Mesh(new THREE.IcosahedronGeometry(.3,0),this.mat('#ffc66a',{emissive:'#ff7c24',emissiveIntensity:3}));fire.name='replaceable-barrel-flame';fire.position.set(x,1.3,z);this.scene.add(fire);
       const l=new THREE.PointLight('#ff8c3d',22,10);l.position.set(x,1.7,z);this.scene.add(l);this.lamps.push({light:l,phase:x});
     }
     // Debris, cracks and old road markings, all created from geometry.
@@ -126,16 +130,16 @@ export class World {
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));this.dust=new THREE.Points(g,new THREE.PointsMaterial({color:'#c5c9ae',size:.045,transparent:true,opacity:.45,depthWrite:false}));this.scene.add(this.dust);
   }
   sign(text,x,y,z,rotation=0,color='#d5c28c'){
-    const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;const c=canvas.getContext('2d');c.fillStyle='#1a2b28';c.fillRect(0,0,512,96);c.strokeStyle=color;c.lineWidth=4;c.strokeRect(4,4,504,88);c.fillStyle=color;c.textAlign='center';c.font='bold 32px monospace';c.fillText(text,256,60);const texture=new THREE.CanvasTexture(canvas),mesh=new THREE.Mesh(new THREE.PlaneGeometry(5.5,1),new THREE.MeshBasicMaterial({map:texture,side:THREE.DoubleSide}));mesh.position.set(x,y,z);mesh.rotation.y=rotation;this.scene.add(mesh);return mesh;
+    const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;const c=canvas.getContext('2d');c.fillStyle='#1a2b28';c.fillRect(0,0,512,96);c.strokeStyle=color;c.lineWidth=4;c.strokeRect(4,4,504,88);c.fillStyle=color;c.textAlign='center';c.font='bold 32px monospace';c.fillText(text,256,60);const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;const mesh=new THREE.Mesh(new THREE.PlaneGeometry(5.5,1),new THREE.MeshBasicMaterial({map:texture,side:THREE.DoubleSide}));mesh.position.set(x,y,z);mesh.rotation.y=rotation;this.scene.add(mesh);return mesh;
   }
   buildRoute(){
-    this.box(0,-.2,-75,140,.3,290,'#313b38');this.box(0,-.01,-103,20,.07,166,'#293332');
-    for(const side of [-1,1]){this.box(side*11.3,.08,-111,2.5,.2,146,'#62675e');for(let z=-184;z<26;z+=8){this.box(side*38,.05,z,.22,.03,6,'#ac5942');this.cylinder(side*38,.7,z,.08,1.4,'#7a5140');this.box(side*38,1.4,z,.18,.13,.18,'#ef7950',false,{emissive:'#ef5930',emissiveIntensity:1});}}
-    for(let z=-60;z> -184;z-=8){this.box(-1,.05,z,.11,.01,3,'#b5a57a');this.box(1,.05,z,.11,.01,3,'#b5a57a');}
-    for(let z=-63;z> -183;z-=25)for(const side of [-1,1]){const x=side*43,h=12+(Math.abs(z)%13);this.box(x,h/2,z,10,h,16,'#535e55',true);this.architecture.addBuilding({x,z,w:10,d:16,h});for(let y=2;y<h-1;y+=3)for(let wz=-5;wz<=5;wz+=3)this.box(x-side*5.02,y,z+wz,.06,1.5,1.1,'#24342f');}
+    this.box(0,-.2,-120,140,.3,390,'#313b38');this.box(0,-.01,-147,20,.07,254,'#293332');
+    for(const side of [-1,1]){this.box(side*11.3,.08,-155,2.5,.2,234,'#62675e');for(let z=-272;z<26;z+=8){this.box(side*38,.05,z,.22,.03,6,'#ac5942');this.cylinder(side*38,.7,z,.08,1.4,'#7a5140');this.box(side*38,1.4,z,.18,.13,.18,'#ef7950',false,{emissive:'#ef5930',emissiveIntensity:1});}}
+    for(let z=-60;z> -272;z-=8){this.box(-1,.05,z,.11,.01,3,'#b5a57a');this.box(1,.05,z,.11,.01,3,'#b5a57a');}
+    for(let z=-63;z> -271;z-=25)for(const side of [-1,1]){const x=side*43,h=12+(Math.abs(z)%13);this.box(x,h/2,z,10,h,16,'#6f7f88',true);this.architecture.addBuilding({x,z,w:10,d:16,h});for(let y=2;y<h-1;y+=3)for(let wz=-5;wz<=5;wz+=3)this.box(x-side*5.02,y,z+wz,.06,1.5,1.1,'#24342f');}
     this.routeRooms=[];this.caches=[];
     for(const [index,s] of ROUTE_STAGES.entries()){
-      if(index===3){this.box(s.x,.3,s.z,5,.5,5,'#45594c');this.cylinder(s.x,1.1,s.z,.25,1.7,'#68786a');this.box(s.x,2,s.z,.6,.3,.6,'#a4decd',false,{emissive:'#80dbbf',emissiveIntensity:1.8});this.sign('NORTH / EXTRACTION',0,4,-177);continue;}
+      if(index===3){this.box(s.x,.3,s.z,5,.5,5,'#45594c');this.cylinder(s.x,1.1,s.z,.25,1.7,'#68786a');this.box(s.x,2,s.z,.6,.3,.6,'#a4decd',false,{emissive:'#80dbbf',emissiveIntensity:1.8});this.sign('NORTH / EXTRACTION',0,4,-265);continue;}
       const x=s.x,z=s.z,side=Math.sign(x),w=12,d=12,front=x-side*w/2;
       this.box(x,.02,z,w,.07,d,'#5a6256');
       this.box(x+side*w/2,1.8,z,.35,3.6,d,'#6a7061',true);
@@ -149,10 +153,10 @@ export class World {
       this.box(x+side*3,.9,z+3,2,.12,1,'#7a7151',true);this.box(x+side*3,1.6,z-4,2,3,.5,'#35483b',true);
       this.caches.push(this.buildChest(x,z,side,index));
       const room={x,z,front,side,width:w,depth:d,index};this.decorateRoom(room,s);this.routeRooms.push(room);
-      this.sign('SUPPLIES / E TO SEARCH',x+side*5.7,2.3,z,side>0?-Math.PI/2:Math.PI/2,'#efd18b');
+      this.sign('FIELD WORKBENCH / U UPGRADES',x,2.6,z+5.75,Math.PI,'#b6c99a');this.sign('SUPPLIES / E TO SEARCH',x+side*5.7,2.3,z,side>0?-Math.PI/2:Math.PI/2,'#efd18b');
     }
-    for(const z of [-55,-96,-145]){this.car(6,z,'#5c6b57');this.box(-7,.65,z-8,3,1.3,1,'#8c8b73',true);}
-    for(let z=-55;z> -180;z-=24){this.cylinder(-10.8,3,z,.1,6,'#35423c');this.box(-10,6,z,1.6,.12,.2,'#35423c');const light=new THREE.PointLight('#ffd397',12,12,2);light.position.set(-10,5.5,z);this.scene.add(light);this.lamps.push({light,phase:Math.abs(z)});}
+    for(const z of [-55,-118,-195,-238]){this.car(6,z,'#5c6b57');this.box(-7,.65,z-8,3,1.3,1,'#8c8b73',true);}
+    for(let z=-55;z> -270;z-=24){this.cylinder(-10.8,3,z,.1,6,'#35423c');this.box(-10,6,z,1.6,.12,.2,'#35423c');const light=new THREE.PointLight('#ffd397',12,12,2);light.position.set(-10,5.5,z);this.scene.add(light);this.lamps.push({light,phase:Math.abs(z)});}
     this.sign('NORTHBOUND / FOLLOW THE SIGNAL',0,4,-48);
   }
   label(text,color='#ffd275',width=6){const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=160;const c=canvas.getContext('2d');c.fillStyle='#0b1c1ce8';c.fillRect(0,0,1024,160);c.strokeStyle=color;c.lineWidth=6;c.strokeRect(4,4,1016,152);c.fillStyle=color;c.textAlign='center';c.font='bold 48px Arial';c.fillText(text,512,98);const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,depthWrite:false}));sprite.scale.set(width,width*160/1024,1);this.scene.add(sprite);return sprite;}
@@ -187,19 +191,16 @@ export class World {
   resetSupplies(){for(let i=0;i<this.caches.length;i++)this.setCacheOpened(i,false,true);this.clearPickups();this.clearWeapons();this.addPickup('health',new THREE.Vector3(-4,0,3));this.addPickup('ammo',new THREE.Vector3(4,0,-4));this.addPickup('grenade',new THREE.Vector3(3,0,3));this.addWeaponPickup('rifle',-4,4);
     for(const s of ROUTE_STAGES.filter(s=>s.weapon)){this.addWeaponPickup(s.weapon,s.x+1.8,s.z-1.4);this.addPickup('health',new THREE.Vector3(s.x-2,0,s.z-2));this.addPickup('ammo',new THREE.Vector3(s.x-2,0,s.z+2));this.addPickup('grenade',new THREE.Vector3(s.x+2,0,s.z+2));}
   }
-  car(x,z,color) {
-    this.box(x,.65,z,2,1,4,color,true);this.box(x,1.35,z-.1,1.8,.7,2.1,'#293b37');this.box(x,1.73,z-.1,1.9,.12,2.2,color);this.box(x,.73,z+2.02,1.7,.2,.06,'#9b9277');
-    for(const a of [-1,1])for(const b of [-1,1]){const w=this.cylinder(x+a*1.02,.42,z+b*1.3,.4,.22,'#1e2624');w.rotation.z=Math.PI/2;}
-  }
-  isFree(x,z,r=1.5) {return Math.abs(x)<37&&z> -183&&z<25&&!this.obstacles.some(o=>x>o.minX-r&&x<o.maxX+r&&z>o.minZ-r&&z<o.maxZ+r);}
+  car(x,z,color) {createVehicle(this,x,z,color);}
+  isFree(x,z,r=1.5) {return Math.abs(x)<37&&z> -271&&z<25&&!this.obstacles.some(o=>x>o.minX-r&&x<o.maxX+r&&z>o.minZ-r&&z<o.maxZ+r);}
   spawnPosition(player,min=19,max=30) {
     for(let i=0;i<100;i++){const a=Math.random()*Math.PI*2,d=min+Math.random()*(max-min),x=player.x+Math.sin(a)*d,z=player.z+Math.cos(a)*d;if(this.isFree(x,z))return new THREE.Vector3(x,0,z);}
     // Enumerate free cells so spawns never fall back inside the player or a building.
-    for(let x=-34;x<=34;x+=4)for(let z=-180;z<=24;z+=4)if(Math.hypot(x-player.x,z-player.z)>min&&this.isFree(x,z))return new THREE.Vector3(x,0,z);
+    for(let x=-34;x<=34;x+=4)for(let z=-268;z<=24;z+=4)if(Math.hypot(x-player.x,z-player.z)>min&&this.isFree(x,z))return new THREE.Vector3(x,0,z);
     return new THREE.Vector3(0,0,-38);
   }
   addPickup(type,position) {
-    const color={health:'#a4e1b0',ammo:'#eac27c',speed:'#8fd9e9',grenade:'#c9db83'}[type];
+    const color={health:'#8ae3a0',ammo:'#83c9ed',speed:'#d9b9f0',grenade:'#f5ad62'}[type];
     const group=new THREE.Group();group.position.copy(position);group.position.y=.65;
     const body=new THREE.Mesh(new THREE.BoxGeometry(.65,.55,.5),this.mat('#344f43'));group.add(body);
     const glow=this.mat(color,{emissive:color,emissiveIntensity:1.4});
@@ -224,5 +225,5 @@ export class World {
   removePickup(p){this.scene.remove(p.group);const materials=new Set();p.group.traverse(o=>{if(o.isMesh){o.geometry.dispose();if(o.userData.ownedMaterial)materials.add(o.material);}});for(const m of materials)m.dispose();p.ring.material.dispose();this.pickups.splice(this.pickups.indexOf(p),1);}
   clearPickups(){for(const p of [...this.pickups])this.removePickup(p);}
   update(dt,time,game=null) {this.helicopter.update(dt);for(const chest of this.caches){chest.lid.rotation.x=THREE.MathUtils.lerp(chest.lid.rotation.x,chest.opened?1.2:0,1-Math.exp(-dt*6));const room=this.routeRooms[chest.index],p=game?.player.position,inside=p&&Math.abs(p.x-room.x)<5.7&&Math.abs(p.z-room.z)<5.7;chest.label.visible=Boolean(game&&game.mission.index===chest.index&&inside&&!chest.opened);chest.ring.visible=Boolean(game&&game.mission.index===chest.index&&!chest.opened);const active=game?.mission.index===chest.index;room.frameMaterial.color.set(active?'#ffe29b':'#75d7b3');room.label.visible=Boolean(!game||Math.hypot((p?.x||0)-room.x,(p?.z||0)-room.z)<75);}
-    for(const p of this.weaponPickups){p.model.rotation.y+=dt*.55;p.model.position.y=Math.sin(time*2+p.group.position.x)*.1;}this.dust.rotation.y+=dt*.002;for(const l of this.lamps)l.light.intensity=(l.phase<0?20:11)*(1+.07*Math.sin(time*13+l.phase)+.03*Math.sin(time*37));for(const p of this.pickups){p.group.rotation.y+=dt*.8;p.group.position.y=p.baseY+Math.sin(time*2+p.group.position.x)*.12;}this.updateLightPool(game?.player.position||new THREE.Vector3(0,0,8));}
+    for(const p of this.weaponPickups){p.model.rotation.y+=dt*.55;p.model.position.y=Math.sin(time*2+p.group.position.x)*.1;}this.dust.rotation.y+=dt*.002;for(const l of this.lamps)l.light.intensity=(l.phase<0?20:11)*(this.reducedFlash?1:1+.07*Math.sin(time*13+l.phase)+.03*Math.sin(time*37));for(const p of this.pickups){p.group.rotation.y+=dt*.8;p.group.position.y=p.baseY+Math.sin(time*2+p.group.position.x)*.12;}this.updateLightPool(game?.player.position||new THREE.Vector3(0,0,8));}
 }

@@ -1,9 +1,11 @@
 import * as THREE from 'three';
+import {applyMaterialDetail} from './MaterialLibrary.js';
 import {roundedBox,ellipsoid,DetailBatch} from './Geometry.js';
 
 export function createGrenadeModel(){
   const group=new THREE.Group();group.name='fragmentation-grenade';const details=new DetailBatch();
   const shell=new THREE.MeshStandardMaterial({color:'#58633c',metalness:.5,roughness:.48}),ribs=new THREE.MeshStandardMaterial({color:'#303e29',metalness:.6,roughness:.48}),steel=new THREE.MeshStandardMaterial({color:'#9aa69a',metalness:.85,roughness:.27}),band=new THREE.MeshStandardMaterial({color:'#d1ad52',metalness:.5,roughness:.42});
+  applyMaterialDetail(shell,'metal',.35);applyMaterialDetail(steel,'metal',.15);
   const add=(geo,mat,p,r,scale)=>details.add(group,geo,mat,p,r,scale);
   add(ellipsoid(.3,.36,.3,40),shell,[0,-.025,0]);
   for(const y of [-.13,-.065,0,.065,.13]){const radius=.15*Math.sqrt(Math.max(.1,1-((y+.025)/.18)**2));add(new THREE.TorusGeometry(radius,.008,8,40),ribs,[0,y,0],[Math.PI/2,0,0]);}

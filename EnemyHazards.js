@@ -1,0 +1,9 @@
+import * as THREE from 'three';
+export class EnemyHazards {
+  constructor(game){this.game=game;this.items=[];this.ray=new THREE.Raycaster();this.ball=new THREE.SphereGeometry(.16,12,8);this.ring=new THREE.RingGeometry(.1,2.2,32);this.material=new THREE.MeshBasicMaterial({color:'#bddb59',transparent:true,opacity:.7,side:THREE.DoubleSide,depthWrite:false});}
+  spit(position,target,damage){if(this.items.length>=20)return;const mesh=new THREE.Mesh(this.ball,this.material),start=position.clone().add(new THREE.Vector3(0,1.6,0)),end=target.clone().setY(.15);mesh.position.copy(start);this.game.scene.add(mesh);this.items.push({mesh,start,end,damage,age:0,zone:false});}
+  explode(position,damage){const g=this.game,target=g.player.position.clone().add(new THREE.Vector3(0,1,0)),start=position.clone().add(new THREE.Vector3(0,1,0));g.combat.burst(start,'spark',40);g.sound.noise?.(.4,.8);if(start.distanceTo(target)<5&&this.clear(start,target))g.damage(damage,position);}
+  clear(a,b){this.ray.set(a,b.clone().sub(a).normalize());this.ray.far=a.distanceTo(b);return !this.ray.intersectObjects(this.game.world.solids,false).length;}
+  update(dt){for(let i=this.items.length-1;i>=0;i--){const p=this.items[i];p.age+=dt;if(!p.zone){const next=p.start.clone().lerp(p.end,Math.min(1,p.age/1.1));next.y+=Math.sin(Math.min(1,p.age/1.1)*Math.PI)*2;if(!this.clear(p.mesh.position,next)||p.age>=1.1){p.zone=true;p.age=0;p.mesh.geometry=this.ring;p.mesh.rotation.x=-Math.PI/2;p.mesh.position.y=.09;}else p.mesh.position.copy(next);}else{p.tick=(p.tick||0)+dt;if(p.tick>=1){p.tick=0;if(p.mesh.position.distanceTo(this.game.player.position)<2.2&&this.clear(p.mesh.position.clone().setY(.7),this.game.player.position.clone().add(new THREE.Vector3(0,.7,0))))this.game.damage(p.damage,p.mesh.position);}}if(p.zone&&p.age>4){this.game.scene.remove(p.mesh);this.items.splice(i,1);}}}
+  reset(){for(const p of this.items)this.game.scene.remove(p.mesh);this.items.length=0;}
+}

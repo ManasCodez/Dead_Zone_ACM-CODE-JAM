@@ -1,9 +1,10 @@
 import * as THREE from 'three';
+import {applyMaterialDetail} from './MaterialLibrary.js';
 import {roundedBox,DetailBatch} from './Geometry.js';
 
 export class Architecture {
-  constructor(scene){this.scene=scene;this.lods=[];this.windowGeometries=new Map();this.materials={stone:new THREE.MeshStandardMaterial({color:'#969d8a',roughness:.86}),frame:new THREE.MeshStandardMaterial({color:'#53685f',metalness:.5,roughness:.38}),steel:new THREE.MeshStandardMaterial({color:'#788b83',metalness:.65,roughness:.35}),dark:new THREE.MeshStandardMaterial({color:'#263932',roughness:.72}),wood:new THREE.MeshStandardMaterial({color:'#8b7b58',roughness:.85}),glass:new THREE.MeshStandardMaterial({color:'#4c7070',metalness:.3,roughness:.2})};}
-  windowGeometry(w,h,d){const key=[w,h,d].join(',');if(!this.windowGeometries.has(key))this.windowGeometries.set(key,roundedBox(w,h,d,2));return this.windowGeometries.get(key);}
+  constructor(scene){this.scene=scene;this.lods=[];this.windowGeometries=new Map();this.materials={stone:new THREE.MeshStandardMaterial({color:'#9da5a8',roughness:.86}),frame:new THREE.MeshStandardMaterial({color:'#566874',metalness:.5,roughness:.38}),steel:new THREE.MeshStandardMaterial({color:'#7d8e98',metalness:.65,roughness:.35}),dark:new THREE.MeshStandardMaterial({color:'#263932',roughness:.72}),wood:new THREE.MeshStandardMaterial({color:'#8b7b58',roughness:.85}),glass:new THREE.MeshStandardMaterial({color:'#4c7070',metalness:.3,roughness:.2,envMapIntensity:1.3})};for(const [key,mat] of Object.entries(this.materials))if(key!=='glass')applyMaterialDetail(mat,key==='wood'?'wood':key==='stone'?'concrete':'metal',.25);this.materials.glass.color.set('#63828e');}
+  windowGeometry(w,h,d){const key=[w,h,d].join(',');if(!this.windowGeometries.has(key))this.windowGeometries.set(key,new THREE.BoxGeometry(w,h,d));return this.windowGeometries.get(key);}
   addBuilding({x,z,w,d,h}){
     const root=new THREE.Group();root.name='sculpted-building-details';const batch=new DetailBatch(),m=this.materials,windows=new Map();
     const add=(geometry,material,pos,rot,scale)=>batch.add(root,geometry,material,pos,rot,scale);
@@ -11,6 +12,7 @@ export class Architecture {
     for(const face of [0,1,2,3]){const width=face<2?w:d,angle=[0,Math.PI,Math.PI/2,-Math.PI/2][face],normal=new THREE.Vector3(Math.sin(angle),0,Math.cos(angle)),offset=face<2?d/2:w/2;
       const window=(u,y,geo,mat,du=0,dy=0,depth=0,rz=0)=>{const p=new THREE.Vector3(u+du,y+dy,offset+depth).applyAxisAngle(new THREE.Vector3(0,1,0),angle),key=geo.uuid+mat.uuid;if(!windows.has(key))windows.set(key,{geometry:geo,material:mat,matrices:[]});windows.get(key).matrices.push(new THREE.Matrix4().compose(p,new THREE.Quaternion().setFromEuler(new THREE.Euler(0,angle,rz)),new THREE.Vector3(1,1,1)));};
       for(let y=2;y<h-1;y+=3.1)for(let u=-width/2+1.3;u<width/2-.5;u+=2.5){
+        if((Math.floor(y*10)+Math.floor(u*10)+Math.floor(x))%11===0)window(u,y,this.windowGeometry(1.2,1.6,.035),m.wood,0,0,.04);
         for(const side of [-1,1])window(u,y,this.windowGeometry(.075,1.76,.17),m.frame,side*.62,0,.11);
         for(const side of [-1,1])window(u,y,this.windowGeometry(1.3,.075,.17),m.frame,0,side*.85,.11);
         window(u,y,this.windowGeometry(.045,1.62,.1),m.steel,0,0,.13);window(u,y,this.windowGeometry(1.42,.14,.38),m.stone,0,-.96,.13);
@@ -20,7 +22,7 @@ export class Architecture {
     }
     // Curved service pipes, flanges and rooftop water storage.
     for(const side of [-1,1]){const px=side*(w/2-.32),pz=d/2+.24;add(new THREE.CylinderGeometry(.07,.07,h,24),m.steel,[px,h/2,pz]);for(let y=1;y<h;y+=4)add(new THREE.TorusGeometry(.09,.018,8,24),m.frame,[px,y,pz],[Math.PI/2,0,0]);}
-    const tankX=w*.22,tankZ=-d*.15;add(new THREE.CylinderGeometry(1,1.05,1.7,48,4),m.steel,[tankX,h+1.15,tankZ]);add(new THREE.SphereGeometry(1,40,20,0,Math.PI*2,0,Math.PI/2),m.steel,[tankX,h+2,tankZ],[0,0,0],[1,.38,1]);for(const y of [h+.4,h+1.6])add(new THREE.TorusGeometry(1.035,.045,10,48),m.frame,[tankX,y,tankZ],[Math.PI/2,0,0]);
+    const tankX=w*.22,tankZ=-d*.15;add(new THREE.CylinderGeometry(1,1.05,1.7,24,1),m.steel,[tankX,h+1.15,tankZ]);add(new THREE.SphereGeometry(1,24,12,0,Math.PI*2,0,Math.PI/2),m.steel,[tankX,h+2,tankZ],[0,0,0],[1,.38,1]);for(const y of [h+.4,h+1.6])add(new THREE.TorusGeometry(1.035,.045,10,48),m.frame,[tankX,y,tankZ],[Math.PI/2,0,0]);
     for(const side of [-1,1])add(new THREE.CylinderGeometry(.06,.06,.65,20),m.frame,[tankX+side*.7,h+.28,tankZ]);
     add(roundedBox(2.4,.85,1.6,4),m.dark,[-w*.2,h+.65,d*.17]);for(let n=0;n<8;n++)add(roundedBox(.08,.52,1.45,2),m.steel,[-w*.2-.84+n*.24,h+.7,d*.17]);
     const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(-w*.2,h+.5,d*.17),new THREE.Vector3(-w*.3,h+.6,-d*.15),new THREE.Vector3(-w*.3,h+.25,-d*.3)]);add(new THREE.TubeGeometry(curve,32,.11,16,false),m.steel);

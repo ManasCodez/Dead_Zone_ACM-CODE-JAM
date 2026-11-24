@@ -1,0 +1,58 @@
+{
+  "environment": "Brave/Chromium with SwiftShader software WebGL",
+  "method": "Fixed third-person camera, active 5-enemy and 24-enemy scenes, four warmup frames and 24 requestAnimationFrame intervals. These are frame intervals in software WebGL, not hardware GPU timings or FPS targets.",
+  "viewport": [
+    960,
+    540
+  ],
+  "results": [
+    {
+      "quality": "low",
+      "enemyCount": 5,
+      "samples": 24,
+      "rafMedianMs": 666.5999999999985,
+      "rafP95Ms": 1216.7000000000007,
+      "drawCalls": 745,
+      "triangles": 604358,
+      "textures": 48,
+      "geometries": 790,
+      "gpuTimerAvailable": true
+    },
+    {
+      "quality": "low",
+      "enemyCount": 24,
+      "samples": 24,
+      "rafMedianMs": 1449.9000000000015,
+      "rafP95Ms": 1633.199999999997,
+      "drawCalls": 1809,
+      "triangles": 1694364,
+      "textures": 48,
+      "geometries": 1854,
+      "gpuTimerAvailable": true
+    },
+    {
+      "quality": "balanced",
+      "enemyCount": 5,
+      "samples": 24,
+      "rafMedianMs": 883.3000000000029,
+      "rafP95Ms": 1266.6000000000058,
+      "drawCalls": 1361,
+      "triangles": 926322,
+      "textures": 77,
+      "geometries": 928,
+      "gpuTimerAvailable": true
+    },
+    {
+      "quality": "balanced",
+      "enemyCount": 24,
+      "samples": 24,
+      "rafMedianMs": 1766.6000000000058,
+      "rafP95Ms": 1949.8999999999942,
+      "drawCalls": 3125,
+      "triangles": 2656244,
+      "textures": 77,
+      "geometries": 1992,
+      "gpuTimerAvailable": true
+    }
+  ]
+}

@@ -1,5 +1,8 @@
 import {test,expect} from '@playwright/test';
 
+// Software WebGL controls checks use the performance preset. Visual checks retain normal lighting.
+test.beforeEach(async({page},info)=>{if(!/higher-poly|larger navigation/.test(info.title))await page.addInitScript(()=>{if(!localStorage.getItem('dead-zone-settings'))localStorage.setItem('dead-zone-settings',JSON.stringify({quality:'low'}));});});
+
 async function enterGame(page){await page.locator('#play').click();await page.locator('#intro-skip').click();await expect(page.locator('#intro-screen')).toBeHidden({timeout:15000});}
 
 
@@ -22,7 +25,7 @@ test('render and exercise a complete survival session',async({page})=>{
   await page.keyboard.down('Space');await page.waitForFunction(()=>window.__DEAD_ZONE__.player.position.y>.1);await page.keyboard.up('Space');
   expect(await page.evaluate(()=>window.__DEAD_ZONE__.player.position.y)).toBeGreaterThan(0);
   await page.waitForTimeout(800);
-  await page.mouse.move(720,450);await page.mouse.down();await page.waitForTimeout(550);await page.mouse.up();
+  await page.mouse.move(720,450);await page.mouse.down();await expect.poll(()=>page.evaluate(()=>window.__DEAD_ZONE__.combat.ammo),{timeout:10000}).toBeLessThan(30);await page.mouse.up();
   expect(await page.evaluate(()=>window.__DEAD_ZONE__.combat.ammo)).toBeLessThan(30);
   await page.keyboard.press('KeyR');await expect(page.locator('#reload-status')).toHaveText('RELOADING…');await expect(page.locator('#ammo')).toHaveText('30',{timeout:15000});
   await page.locator('#pause-button').click();await expect(page.locator('#pause')).toBeVisible();const frozen=await page.evaluate(()=>window.__DEAD_ZONE__.elapsed);await page.waitForTimeout(200);expect(await page.evaluate(()=>window.__DEAD_ZONE__.elapsed)).toBe(frozen);
@@ -56,7 +59,7 @@ test('collect guns, switch inventory, recoil, mixed wave one and music lifecycle
   test.setTimeout(90000);
   const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/');await page.waitForFunction(()=>!!window.__DEAD_ZONE__);
   await page.evaluate(()=>{HTMLCanvasElement.prototype.requestPointerLock=()=>Promise.resolve();window.__DEAD_ZONE__.renderer.setPixelRatio(.6);});await enterGame(page);
-  expect(await page.evaluate(()=>{const g=window.__DEAD_ZONE__;return new Set([...g.spawnQueue,...g.zombies.map(z=>z.type)]).size;})).toBe(5);
+  expect(await page.evaluate(()=>{const g=window.__DEAD_ZONE__;const types=new Set([...g.spawnQueue,...g.zombies.map(z=>z.type)]);return ['normal','runner','tank','crawler','bloater'].every(type=>types.has(type));})).toBe(true);
   await expect.poll(()=>page.evaluate(()=>window.__DEAD_ZONE__.sound.music.step)).toBeGreaterThan(0);
   for(const id of ['smg','shotgun','lmg']){
     await page.evaluate(id=>{const g=window.__DEAD_ZONE__,p=g.world.weaponPickups.find(p=>p.id===id);g.player.position.copy(p.group.position);g.player.position.y=0;},id);

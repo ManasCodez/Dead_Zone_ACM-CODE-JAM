@@ -1,0 +1,693 @@
+{
+  "phase": "postprocessing",
+  "renderer": "Chromium / SwiftShader software WebGL",
+  "timingNote": "Synchronous JS render submission including gl.finish; not GPU duration or hardware FPS",
+  "viewport": [
+    960,
+    540
+  ],
+  "errors": [],
+  "measurements": [
+    {
+      "name": "panorama",
+      "quality": "balanced",
+      "eye": [
+        16,
+        6.5,
+        28
+      ],
+      "target": [
+        -2,
+        2,
+        -14
+      ],
+      "colorCalls": 602,
+      "colorTriangles": 318946,
+      "calls": 910,
+      "triangles": 406438,
+      "geometries": 596,
+      "textures": 71,
+      "cpuSubmitMedianMs": 3.100000001490116,
+      "cpuSubmitP95Ms": 3.899999998509884,
+      "heap": 158503260
+    },
+    {
+      "name": "player",
+      "quality": "balanced",
+      "eye": [
+        1.05,
+        2.52,
+        12.75
+      ],
+      "target": [
+        1.05,
+        1.4,
+        -25
+      ],
+      "colorCalls": 648,
+      "colorTriangles": 413444,
+      "calls": 980,
+      "triangles": 516150,
+      "geometries": 706,
+      "textures": 76,
+      "cpuSubmitMedianMs": 3.100000001490116,
+      "cpuSubmitP95Ms": 467.1000000014901,
+      "heap": 168734884
+    },
+    {
+      "name": "infected",
+      "quality": "balanced",
+      "eye": [
+        0,
+        5.5,
+        8
+      ],
+      "target": [
+        0,
+        1.8,
+        -7
+      ],
+      "colorCalls": 1271,
+      "colorTriangles": 1031440,
+      "calls": 2019,
+      "triangles": 1520938,
+      "geometries": 1454,
+      "textures": 80,
+      "cpuSubmitMedianMs": 5.299999997019768,
+      "cpuSubmitP95Ms": 769.2999999970198,
+      "heap": 198654331
+    },
+    {
+      "name": "clinic-interior",
+      "quality": "balanced",
+      "eye": [
+        -23,
+        2.6,
+        -20
+      ],
+      "target": [
+        -31,
+        1.4,
+        -25
+      ],
+      "colorCalls": 208,
+      "colorTriangles": 182424,
+      "calls": 492,
+      "triangles": 251202,
+      "geometries": 790,
+      "textures": 81,
+      "cpuSubmitMedianMs": 1.6000000014901161,
+      "cpuSubmitP95Ms": 1.9000000059604645,
+      "heap": 187232048
+    },
+    {
+      "name": "explosion",
+      "quality": "balanced",
+      "eye": [
+        2,
+        3,
+        9
+      ],
+      "target": [
+        0,
+        1,
+        -1
+      ],
+      "colorCalls": 619,
+      "colorTriangles": 327664,
+      "calls": 935,
+      "triangles": 408194,
+      "geometries": 821,
+      "textures": 82,
+      "cpuSubmitMedianMs": 3,
+      "cpuSubmitP95Ms": 3.3000000044703484,
+      "heap": 187791238
+    },
+    {
+      "name": "extraction",
+      "quality": "balanced",
+      "eye": [
+        2,
+        6,
+        -249
+      ],
+      "target": [
+        12,
+        2,
+        -261
+      ],
+      "colorCalls": 71,
+      "colorTriangles": 73431,
+      "calls": 183,
+      "triangles": 148618,
+      "geometries": 936,
+      "textures": 86,
+      "cpuSubmitMedianMs": 0.7999999970197678,
+      "cpuSubmitP95Ms": 1.2000000029802322,
+      "heap": 188647950
+    },
+    {
+      "name": "aim",
+      "quality": "balanced",
+      "eye": [
+        0.85,
+        2.2,
+        10.8
+      ],
+      "target": [
+        0.85,
+        1.4,
+        -25
+      ],
+      "colorCalls": 439,
+      "colorTriangles": 271360,
+      "calls": 771,
+      "triangles": 374066,
+      "geometries": 574,
+      "textures": 72,
+      "cpuSubmitMedianMs": 2.5,
+      "cpuSubmitP95Ms": 3.2000000029802322,
+      "heap": 139403764
+    },
+    {
+      "name": "reload",
+      "quality": "balanced",
+      "eye": [
+        2.8,
+        2.3,
+        9.6
+      ],
+      "target": [
+        0,
+        1.1,
+        8
+      ],
+      "colorCalls": 383,
+      "colorTriangles": 270896,
+      "calls": 747,
+      "triangles": 385022,
+      "geometries": 741,
+      "textures": 76,
+      "cpuSubmitMedianMs": 2.5,
+      "cpuSubmitP95Ms": 3.100000001490116,
+      "heap": 137842323
+    },
+    {
+      "name": "clinic-exterior",
+      "quality": "balanced",
+      "eye": [
+        -12,
+        5,
+        -14
+      ],
+      "target": [
+        -28,
+        1.7,
+        -23
+      ],
+      "colorCalls": 217,
+      "colorTriangles": 160526,
+      "calls": 508,
+      "triangles": 236030,
+      "geometries": 748,
+      "textures": 77,
+      "cpuSubmitMedianMs": 1.7000000029802322,
+      "cpuSubmitP95Ms": 2.2999999970197678,
+      "heap": 137518220
+    },
+    {
+      "name": "armory-exterior",
+      "quality": "balanced",
+      "eye": [
+        9,
+        5,
+        -80
+      ],
+      "target": [
+        22,
+        1.7,
+        -89
+      ],
+      "colorCalls": 184,
+      "colorTriangles": 159402,
+      "calls": 342,
+      "triangles": 190308,
+      "geometries": 775,
+      "textures": 77,
+      "cpuSubmitMedianMs": 1.3999999985098839,
+      "cpuSubmitP95Ms": 1.8000000044703484,
+      "heap": 137763684
+    },
+    {
+      "name": "armory-interior",
+      "quality": "balanced",
+      "eye": [
+        17,
+        2.6,
+        -86
+      ],
+      "target": [
+        25,
+        1.4,
+        -91
+      ],
+      "colorCalls": 158,
+      "colorTriangles": 139016,
+      "calls": 320,
+      "triangles": 169998,
+      "geometries": 775,
+      "textures": 77,
+      "cpuSubmitMedianMs": 1.2000000029802322,
+      "cpuSubmitP95Ms": 1.4000000059604645,
+      "heap": 137228908
+    },
+    {
+      "name": "industrial",
+      "quality": "balanced",
+      "eye": [
+        3,
+        4,
+        -120
+      ],
+      "target": [
+        -7,
+        2,
+        -151
+      ],
+      "colorCalls": 358,
+      "colorTriangles": 258095,
+      "calls": 493,
+      "triangles": 289737,
+      "geometries": 1018,
+      "textures": 93,
+      "cpuSubmitMedianMs": 3.2000000029802322,
+      "cpuSubmitP95Ms": 3.7999999970197678,
+      "heap": 139277996
+    },
+    {
+      "name": "optional",
+      "quality": "balanced",
+      "eye": [
+        10,
+        4,
+        -202
+      ],
+      "target": [
+        26,
+        1.7,
+        -211
+      ],
+      "colorCalls": 100,
+      "colorTriangles": 96906,
+      "calls": 253,
+      "triangles": 153126,
+      "geometries": 1033,
+      "textures": 93,
+      "cpuSubmitMedianMs": 1.0999999940395355,
+      "cpuSubmitP95Ms": 1.2000000029802322,
+      "heap": 141973499
+    },
+    {
+      "name": "panorama",
+      "quality": "low",
+      "eye": [
+        16,
+        6.5,
+        28
+      ],
+      "target": [
+        -2,
+        2,
+        -14
+      ],
+      "colorCalls": 531,
+      "colorTriangles": 298972,
+      "calls": 531,
+      "triangles": 298972,
+      "geometries": 505,
+      "textures": 44,
+      "cpuSubmitMedianMs": 2.4000000059604645,
+      "cpuSubmitP95Ms": 2.5999999940395355,
+      "heap": 145272903
+    },
+    {
+      "name": "player",
+      "quality": "low",
+      "eye": [
+        1.05,
+        2.52,
+        12.75
+      ],
+      "target": [
+        1.05,
+        1.4,
+        -25
+      ],
+      "colorCalls": 566,
+      "colorTriangles": 366588,
+      "calls": 566,
+      "triangles": 366588,
+      "geometries": 600,
+      "textures": 48,
+      "cpuSubmitMedianMs": 1.8999999985098839,
+      "cpuSubmitP95Ms": 2,
+      "heap": 151157862
+    },
+    {
+      "name": "aim",
+      "quality": "low",
+      "eye": [
+        0.85,
+        2.2,
+        10.8
+      ],
+      "target": [
+        0.85,
+        1.4,
+        -25
+      ],
+      "colorCalls": 358,
+      "colorTriangles": 224236,
+      "calls": 358,
+      "triangles": 224236,
+      "geometries": 601,
+      "textures": 48,
+      "cpuSubmitMedianMs": 1.3999999985098839,
+      "cpuSubmitP95Ms": 1.6000000014901161,
+      "heap": 154562706
+    },
+    {
+      "name": "reload",
+      "quality": "low",
+      "eye": [
+        2.8,
+        2.3,
+        9.6
+      ],
+      "target": [
+        0,
+        1.1,
+        8
+      ],
+      "colorCalls": 378,
+      "colorTriangles": 270888,
+      "calls": 378,
+      "triangles": 270888,
+      "geometries": 627,
+      "textures": 48,
+      "cpuSubmitMedianMs": 1.8000000044703484,
+      "cpuSubmitP95Ms": 3,
+      "heap": 135713898
+    },
+    {
+      "name": "infected",
+      "quality": "low",
+      "eye": [
+        0,
+        5.5,
+        8
+      ],
+      "target": [
+        0,
+        1.8,
+        -7
+      ],
+      "colorCalls": 1132,
+      "colorTriangles": 965668,
+      "calls": 1132,
+      "triangles": 965668,
+      "geometries": 1304,
+      "textures": 48,
+      "cpuSubmitMedianMs": 3.100000001490116,
+      "cpuSubmitP95Ms": 4.399999998509884,
+      "heap": 194161928
+    },
+    {
+      "name": "clinic-exterior",
+      "quality": "low",
+      "eye": [
+        -12,
+        5,
+        -14
+      ],
+      "target": [
+        -28,
+        1.7,
+        -23
+      ],
+      "colorCalls": 216,
+      "colorTriangles": 160526,
+      "calls": 216,
+      "triangles": 160526,
+      "geometries": 638,
+      "textures": 49,
+      "cpuSubmitMedianMs": 1.1000000014901161,
+      "cpuSubmitP95Ms": 1.2999999970197678,
+      "heap": 184283730
+    },
+    {
+      "name": "clinic-interior",
+      "quality": "low",
+      "eye": [
+        -23,
+        2.6,
+        -20
+      ],
+      "target": [
+        -31,
+        1.4,
+        -25
+      ],
+      "colorCalls": 207,
+      "colorTriangles": 182424,
+      "calls": 207,
+      "triangles": 182424,
+      "geometries": 642,
+      "textures": 49,
+      "cpuSubmitMedianMs": 1.1999999955296516,
+      "cpuSubmitP95Ms": 1.3999999985098839,
+      "heap": 184121703
+    },
+    {
+      "name": "armory-exterior",
+      "quality": "low",
+      "eye": [
+        9,
+        5,
+        -80
+      ],
+      "target": [
+        22,
+        1.7,
+        -89
+      ],
+      "colorCalls": 180,
+      "colorTriangles": 159396,
+      "calls": 180,
+      "triangles": 159396,
+      "geometries": 675,
+      "textures": 50,
+      "cpuSubmitMedianMs": 0.8999999985098839,
+      "cpuSubmitP95Ms": 1,
+      "heap": 184133791
+    },
+    {
+      "name": "armory-interior",
+      "quality": "low",
+      "eye": [
+        17,
+        2.6,
+        -86
+      ],
+      "target": [
+        25,
+        1.4,
+        -91
+      ],
+      "colorCalls": 157,
+      "colorTriangles": 139016,
+      "calls": 157,
+      "triangles": 139016,
+      "geometries": 675,
+      "textures": 50,
+      "cpuSubmitMedianMs": 0.8999999985098839,
+      "cpuSubmitP95Ms": 1.2000000029802322,
+      "heap": 184812615
+    },
+    {
+      "name": "industrial",
+      "quality": "low",
+      "eye": [
+        3,
+        4,
+        -120
+      ],
+      "target": [
+        -7,
+        2,
+        -151
+      ],
+      "colorCalls": 246,
+      "colorTriangles": 146656,
+      "calls": 246,
+      "triangles": 146656,
+      "geometries": 851,
+      "textures": 66,
+      "cpuSubmitMedianMs": 1.2999999970197678,
+      "cpuSubmitP95Ms": 1.5,
+      "heap": 185311801
+    },
+    {
+      "name": "optional",
+      "quality": "low",
+      "eye": [
+        10,
+        4,
+        -202
+      ],
+      "target": [
+        26,
+        1.7,
+        -211
+      ],
+      "colorCalls": 95,
+      "colorTriangles": 96898,
+      "calls": 95,
+      "triangles": 96898,
+      "geometries": 866,
+      "textures": 66,
+      "cpuSubmitMedianMs": 0.7000000029802322,
+      "cpuSubmitP95Ms": 0.8999999985098839,
+      "heap": 185429656
+    },
+    {
+      "name": "explosion",
+      "quality": "low",
+      "eye": [
+        2,
+        3,
+        9
+      ],
+      "target": [
+        0,
+        1,
+        -1
+      ],
+      "colorCalls": 505,
+      "colorTriangles": 271860,
+      "calls": 505,
+      "triangles": 271860,
+      "geometries": 874,
+      "textures": 67,
+      "cpuSubmitMedianMs": 2.7999999970197678,
+      "cpuSubmitP95Ms": 3.3000000044703484,
+      "heap": 186603277
+    },
+    {
+      "name": "extraction",
+      "quality": "low",
+      "eye": [
+        2,
+        6,
+        -249
+      ],
+      "target": [
+        12,
+        2,
+        -261
+      ],
+      "colorCalls": 70,
+      "colorTriangles": 73431,
+      "calls": 70,
+      "triangles": 73431,
+      "geometries": 908,
+      "textures": 71,
+      "cpuSubmitMedianMs": 0.5,
+      "cpuSubmitP95Ms": 0.6000000014901161,
+      "heap": 186350069
+    },
+    {
+      "name": "low-health",
+      "quality": "low",
+      "eye": [
+        1.05,
+        2.52,
+        12.75
+      ],
+      "target": [
+        1.05,
+        1.4,
+        -25
+      ],
+      "colorCalls": 566,
+      "colorTriangles": 366588,
+      "calls": 566,
+      "triangles": 366588,
+      "geometries": 908,
+      "textures": 71,
+      "cpuSubmitMedianMs": 2,
+      "cpuSubmitP95Ms": 2.100000001490116,
+      "heap": 186615329
+    },
+    {
+      "name": "low-health",
+      "quality": "balanced",
+      "eye": [
+        1.05,
+        2.52,
+        12.75
+      ],
+      "target": [
+        1.05,
+        1.4,
+        -25
+      ],
+      "colorCalls": 648,
+      "colorTriangles": 413444,
+      "calls": 980,
+      "triangles": 516150,
+      "geometries": 652,
+      "textures": 76,
+      "cpuSubmitMedianMs": 3.100000001490116,
+      "cpuSubmitP95Ms": 3.9000000059604645,
+      "heap": 164041508
+    }
+  ],
+  "restarts": [
+    {
+      "geometry": 657,
+      "textures": 78,
+      "heap": 144226123
+    },
+    {
+      "geometry": 657,
+      "textures": 78,
+      "heap": 144251879
+    },
+    {
+      "geometry": 657,
+      "textures": 78,
+      "heap": 144247275
+    },
+    {
+      "geometry": 657,
+      "textures": 78,
+      "heap": 144286439
+    },
+    {
+      "geometry": 657,
+      "textures": 78,
+      "heap": 144260419
+    },
+    {
+      "geometry": 657,
+      "textures": 78,
+      "heap": 144336203
+    },
+    {
+      "geometry": 657,
+      "textures": 78,
+      "heap": 144374563
+    }
+  ]
+}

@@ -1,0 +1,162 @@
+{
+  "viewport": [
+    960,
+    540
+  ],
+  "quality": "balanced",
+  "errors": [],
+  "results": [
+    {
+      "name": "gameplay-hud",
+      "luminance": 64722,
+      "draws": 1006,
+      "triangles": 530890,
+      "error": 0
+    },
+    {
+      "name": "street",
+      "luminance": 45942,
+      "draws": 919,
+      "triangles": 408922,
+      "error": 0
+    },
+    {
+      "name": "clinic-exterior",
+      "luminance": 27415,
+      "draws": 512,
+      "triangles": 237422,
+      "error": 0
+    },
+    {
+      "name": "clinic-interior",
+      "luminance": 65399,
+      "draws": 496,
+      "triangles": 252594,
+      "error": 0
+    },
+    {
+      "name": "armory-exterior",
+      "luminance": 53106,
+      "draws": 341,
+      "triangles": 190200,
+      "error": 0
+    },
+    {
+      "name": "armory-interior",
+      "luminance": 209036,
+      "draws": 319,
+      "triangles": 169826,
+      "error": 0
+    },
+    {
+      "name": "extraction",
+      "luminance": 57073,
+      "draws": 183,
+      "triangles": 148682,
+      "error": 0
+    },
+    {
+      "name": "infected",
+      "luminance": 55655,
+      "draws": 2029,
+      "triangles": 1523722,
+      "error": 0
+    },
+    {
+      "name": "reload-rifle",
+      "progress": 0.44999999999999996,
+      "ammo": 0,
+      "supportHand": [
+        0.31373779961548415,
+        0.7082131900155824,
+        7.453450297407658
+      ],
+      "grip": [
+        0.3137377996154841,
+        0.7082131900155825,
+        7.453450297407657
+      ],
+      "error": 0
+    },
+    {
+      "name": "reload-smg",
+      "progress": 0.45000000000000007,
+      "ammo": 0,
+      "supportHand": [
+        0.2892088058908619,
+        0.7038401678252553,
+        7.510169621103597
+      ],
+      "grip": [
+        0.2892088058908619,
+        0.7038401678252553,
+        7.510169621103596
+      ],
+      "error": 0
+    },
+    {
+      "name": "reload-shotgun",
+      "progress": 0.44999999999999996,
+      "ammo": 3,
+      "supportHand": [
+        0.356590658583916,
+        1.0450111387193384,
+        7.495669992554774
+      ],
+      "grip": [
+        0.356590658583916,
+        1.0450111387193384,
+        7.495669992554773
+      ],
+      "error": 0
+    },
+    {
+      "name": "reload-lmg",
+      "progress": 0.44999999999999996,
+      "ammo": 0,
+      "supportHand": [
+        0.33998282401431296,
+        0.5782396499933091,
+        7.444215570549265
+      ],
+      "grip": [
+        0.33998282401431296,
+        0.578239649993309,
+        7.444215570549265
+      ],
+      "error": 0
+    },
+    {
+      "name": "reload-marksman",
+      "progress": 0.44999999999999996,
+      "ammo": 0,
+      "supportHand": [
+        0.29027315099539147,
+        0.709246057905493,
+        7.425853209459809
+      ],
+      "grip": [
+        0.2902731509953915,
+        0.709246057905493,
+        7.425853209459809
+      ],
+      "error": 0
+    },
+    {
+      "name": "reload-revolver",
+      "progress": 0.44999999999999996,
+      "ammo": 0,
+      "supportHand": [
+        0.07151258901533492,
+        1.1419840224703697,
+        7.520726840200483
+      ],
+      "grip": [
+        0.07151258901533503,
+        1.1419840224703697,
+        7.520726840200483
+      ],
+      "error": 0
+    }
+  ]
+}

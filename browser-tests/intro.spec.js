@@ -1,5 +1,7 @@
 import {test,expect} from '@playwright/test';
 
+test.beforeEach(async({page})=>{await page.addInitScript(()=>{localStorage.setItem('dead-zone-settings',JSON.stringify({quality:'low'}));});});
+
 test('play shows the actual video, fades to black and only then starts the game',async({page})=>{
   test.setTimeout(90000);const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/');await page.waitForFunction(()=>!!window.__DEAD_ZONE__);await page.evaluate(()=>{window.__DEAD_ZONE__.renderer.setPixelRatio(.4);});await page.locator('#play').click();await expect(page.locator('#intro-screen')).toBeVisible();await expect(page.locator('#hud')).toBeHidden();expect(await page.evaluate(()=>window.__DEAD_ZONE__.state)).toBe('intro');expect(await page.evaluate(()=>window.__DEAD_ZONE__.elapsed)).toBe(0);
   await page.waitForFunction(()=>document.getElementById('intro-video').currentTime>.2);expect(await page.locator('#intro-video').evaluate(v=>v.error)).toBeNull();expect(await page.locator('#intro-video').evaluate(v=>v.duration)).toBeGreaterThan(9);await page.keyboard.press('KeyW');expect(await page.evaluate(()=>window.__DEAD_ZONE__.player.position.z)).toBe(8);await page.screenshot({path:'test-results/intro-playing.png'});

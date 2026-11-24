@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import {roundedBox,ellipsoid,capsule,DetailBatch,characterTexture} from './Geometry.js';
+import {roundedBox,ellipsoid,capsule,DetailBatch} from './Geometry.js';
+import {materialMaps,applyMaterialDetail} from './MaterialLibrary.js';
 import {createWeaponModel,disposeModel} from './Weapons.js';
 
 // All models face -Z. Positive shoulder X rotation reaches forward.
@@ -7,12 +8,12 @@ export function createHumanoid({skin='#b49c7c',shirt='#43594e',pants='#303f38',z
   if(tank)type='tank';
   const group=new THREE.Group(),limbs={},details=new DetailBatch(),lodParts=[];
   const mat=(color,extra={})=>new THREE.MeshStandardMaterial({color,roughness:.85,...extra});
-  const skinMap=characterTexture('skin'),clothMap=characterTexture('cloth');
-  const skinMat=mat(skin,{map:skinMap,bumpMap:skinMap,bumpScale:.006,roughness:.62}),shirtMat=mat(shirt,{map:clothMap,bumpMap:clothMap,bumpScale:.009}),pantsMat=mat(pants,{map:clothMap,bumpMap:clothMap,bumpScale:.007}),dark=mat('#202d29',{roughness:.5}),bone=mat('#cfbfa0');
+  const skinMap=materialMaps('skin'),clothMap=materialMaps('cloth');
+  const skinMat=mat(skin,{...skinMap,normalScale:new THREE.Vector2(.2,.2),roughness:1}),shirtMat=mat(shirt,{...clothMap,normalScale:new THREE.Vector2(.3,.3),roughness:1}),pantsMat=mat(pants,{...clothMap,normalScale:new THREE.Vector2(.25,.25),roughness:1}),dark=mat('#202d29',{roughness:.5}),bone=mat('#cfbfa0');
   function part(name,w,h,d,x,y,z,material,parent=group,round=false){
     const organic=/^(neck|jaw|nose|ear|thigh|shin|upperArm|forearm|hand|knee)/.test(name);
-    function build(low){if(round){const g=new THREE.SphereGeometry(1,low?10:32,low?8:24);if(name==='head'){const p=g.attributes.position;for(let i=0;i<p.count;i++){const y=p.getY(i),narrow=y<-.2?1+(y+.2)*.2:1;p.setX(i,p.getX(i)*narrow);}g.computeVertexNormals();}return g;}if(organic)return capsule(w,h,d,low?8:24);return roundedBox(w,h,d,low?1:3,Math.min(w,h,d)*.2);}
-    const high=build(false),low=build(true),m=new THREE.Mesh(high,material);m.userData.detailGeometries=[high,low];lodParts.push(m);if(round)m.scale.set(w/2,h/2,d/2);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);limbs[name]=m;return m;
+    function build(low){if(name.startsWith('spike'))return new THREE.ConeGeometry(w*.6,h,low?6:16).scale(1,1,d/w);if(round){const g=new THREE.SphereGeometry(1,low?10:32,low?8:24);if(name==='head'){const p=g.attributes.position;for(let i=0;i<p.count;i++){const y=p.getY(i),narrow=y<-.2?1+(y+.2)*.2:1;p.setX(i,p.getX(i)*narrow);}g.computeVertexNormals();}if(name==='torso'){const p=g.attributes.position;for(let i=0;i<p.count;i++){const y=p.getY(i);p.setX(i,p.getX(i)*(y<0?.82+y*.07:1.05));p.setZ(i,p.getZ(i)*(p.getZ(i)>0?.9:1));}g.computeVertexNormals();}return g;}if(organic)return capsule(w,h,d,low?8:24);return roundedBox(w,h,d,low?1:3,Math.min(w,h,d)*.2);}
+    const high=build(false),low=build(true),m=new THREE.Mesh(high,material);m.userData.hitZone=/^(head|jaw|nose|ear|socket|eye|mouth|tooth)/.test(name)?'head':'body';m.userData.detailGeometries=[high,low];lodParts.push(m);if(round)m.scale.set(w/2,h/2,d/2);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);limbs[name]=m;return m;
   }
   const detail=(parent,geometry,material,position,rotation,scale)=>details.add(parent,geometry,material,position,rotation,scale);
   part('pelvis',.58,.25,.37,0,.82,0,pantsMat);
@@ -41,12 +42,16 @@ export function createHumanoid({skin='#b49c7c',shirt='#43594e',pants='#303f38',z
     else {arm.rotation.x=s===1?.63:.9;arm.rotation.z=s===1?-.08:-.25;elbow.rotation.x=s===1?1.05:1.15;}
   }
   if(zombie){
-    const eyes=mat(type==='crawler'?'#bafc97':'#ffb367',{emissive:type==='crawler'?'#72ed67':'#ff592f',emissiveIntensity:2.8});
-    for(const s of [-1,1]){part('socket'+s,.13,.12,.04,s*.105,1.88,-.193,dark);part('eye'+s,.065,.055,.035,s*.105,1.89,-.22,eyes);}
+    const eyes=mat(type==='crawler'?'#bafc97':'#ffb367',{emissive:type==='crawler'?'#72ed67':'#ff592f',emissiveIntensity:1.1});
+    for(const s of [-1,1]){part('socket'+s,.13,.12,.04,s*.105,1.88,-.193,dark,group,true);part('eye'+s,.045,.038,.035,s*.105,1.89,-.22,eyes,group,true);}
     part('mouth',.22,.08,.035,0,1.73,-.235,dark);for(let i=-1;i<=1;i++)part('tooth'+i,.035,.045,.035,i*.065,1.75,-.26,bone);
     const wound=mat('#7d3930');part('wound',.19,.26,.035,-.16,1.25,-.205,wound);part('rib',.21,.045,.035,-.15,1.3,-.23,bone);
     limbs.head.rotation.z=.13;
-    if(type==='runner'){group.scale.set(.78,1.08,.8);part('hood',.43,.2,.42,0,2.02,.02,shirtMat);part('strap',.07,.62,.05,.17,1.22,-.22,dark);}
+    if(type==='runner'||type==='stalker'){group.scale.set(type==='stalker'?.65:.78,1.08,.8);part('hood',.43,.2,.42,0,2.02,.02,shirtMat);part('strap',.07,.62,.05,.17,1.22,-.22,dark);}
+    if(type==='screamer'){group.scale.set(.78,1.23,.8);part('throat',.27,.38,.26,0,1.58,-.16,mat('#dc926e',{emissive:'#a34935',emissiveIntensity:.5}),group,true);limbs.head.rotation.x=-.2;}
+    if(type==='brute'||type==='alpha'){group.scale.set(type==='alpha'?1.85:1.7,type==='alpha'?1.8:1.6,1.5);for(const side of [-1,1]){part('growthShoulder'+side,.55,.5,.5,side*.45,1.48,0,skinMat,group,true);part('spike'+side,.18,.5,.2,side*.52,1.8,0,bone);}part('sternum',.38,.64,.17,0,1.2,-.26,bone,group,true);}
+    if(type==='riot'){group.scale.set(1.12,1.12,1);part('shield',.88,1.15,.12,-.3,1.02,-.52,dark);part('visor',.4,.15,.07,0,1.9,-.24,mat('#749d9b',{metalness:.7}));part('helmet',.48,.27,.48,0,2,0,dark);}
+    if(type==='spitter'||type==='exploder'){group.scale.set(type==='exploder'?1.3:.87,type==='exploder'?1.05:1.13,1.1);const toxic=mat(type==='exploder'?'#ed9956':'#afcf63',{emissive:type==='exploder'?'#b04a20':'#5d9b24',emissiveIntensity:.75});for(const side of [-1,1])part('sac'+side,.38,.55,.42,side*.28,1.2,.27,toxic,group,true);if(type==='spitter')part('jawSac',.35,.27,.34,0,1.65,-.18,toxic,group,true);}
     if(type==='tank'){
       group.scale.set(1.5,1.42,1.35);part('chestArmor',.74,.43,.18,0,1.28,-.22,dark);part('helmet',.47,.26,.47,0,2,0,dark);
       for(const s of [-1,1])part('pauldron'+s,.38,.27,.42,s*.46,1.5,0,dark);
@@ -109,6 +114,37 @@ export function createHumanoid({skin='#b49c7c',shirt='#43594e',pants='#303f38',z
     if(type==='bloater'){for(let n=0;n<10;n++){const a=n*2.399,x=Math.sin(a)*.36,y=.88+(n%4)*.12,z=-.38-Math.cos(a)*.04;detail(group,ellipsoid(.08+(n%3)*.025,.1,.07,20),skinMat,[x,y,z]);}const vein=mat('#667346');for(const side of [-1,1]){const points=[new THREE.Vector3(side*.3,.9,-.4),new THREE.Vector3(side*.18,1.12,-.51),new THREE.Vector3(side*.31,1.36,-.35)];detail(group,new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points),20,.012,8,false),vein);}}
     if(type==='crawler'){for(const side of [-1,1])detail(group,ellipsoid(.24,.17,.25),skinMat,[side*.32,1.5,.08]);}
   }
+
+  // Layered tailoring and anatomical transitions; no collision or reach changes.
+  for(const side of [-1,1]){
+    const leg=limbs['legPivot'+side],knee=limbs['kneePivot'+side];
+    detail(leg,ellipsoid(.29,.14,.31,20),pantsMat,[0,-.07,0]);
+    for(let fold=0;fold<2;fold++)detail(leg,ellipsoid(.27,.035,.29,16),pantsMat,[0,-.2-fold*.085,-.01],[0,0,side*.09]);
+    detail(knee,roundedBox(.3,.035,.43,2),dark,[0,-.435,-.065]);
+    if(!zombie){
+      detail(leg,roundedBox(.035,.16,.14,2),shirtMat,[side*.145,-.15,.03]);
+      detail(group,ellipsoid(.1,.16,.25,20),shirtMat,[side*.33,1.43,.02]);
+      detail(group,roundedBox(.075,.035,.06,2),metal,[side*.24,1.05,.57]);
+    }else{
+      detail(group,ellipsoid(.12,.23,.15,20),skinMat,[side*.16,1.5,-.08],[0,0,side*.2]);
+      detail(group,ellipsoid(.16,.035,.13,16),skinMat,[side*.17,1.53,-.15],[0,0,-side*.2]);
+      detail(limbs['elbowPivot'+side],capsule(.06,.24,.065,16),bone,[side*.035,-.13,-.07],[0,0,side*.1]);
+    }
+  }
+  if(!zombie){
+    applyMaterialDetail(limbs.backpack.material,'cloth',.35);applyMaterialDetail(limbs.vest.material,'cloth',.25);
+    detail(group,new THREE.CylinderGeometry(.13,.13,.63,24),shirtMat,[0,.87,.37],[0,0,Math.PI/2]);
+    for(const side of [-1,1])detail(group,roundedBox(.045,.26,.28,2),dark,[side*.21,.87,.37]);
+    detail(group,roundedBox(.3,.13,.012,2),seam,[0,1.43,.484]);
+    for(let n=0;n<3;n++)detail(group,roundedBox(.04,.06,.02,1),dark,[-.09+n*.09,1.43,.497]);
+  }else{
+    if(type==='normal'){detail(group,roundedBox(.07,.4,.04,2),dark,[.08,1.26,-.22],[0,0,-.2]);detail(group,roundedBox(.17,.12,.04,2),pantsMat,[-.19,1.35,-.21]);}
+    if(type==='runner'||type==='stalker'){for(const side of [-1,1])detail(limbs['armPivot'+side],ellipsoid(.16,.31,.18,20),skinMat,[0,-.25,0]);}
+    if(type==='screamer'){for(let n=0;n<5;n++)detail(group,new THREE.TorusGeometry(.12,.014,6,16),skinMat,[0,1.42+n*.06,-.15],[Math.PI/2,0,0]);}
+    if(type==='riot'){for(const side of [-1,1])detail(group,roundedBox(.04,1.12,.035,2),metal,[-.3+side*.43,1.02,-.59]);detail(group,roundedBox(.65,.16,.015,2),seam,[-.3,1.3,-.589]);}
+    if(type==='brute'||type==='alpha'){for(let n=0;n<(type==='alpha'?7:3);n++){const y=.94+n*.13;detail(group,new THREE.ConeGeometry(.07,.23+n*.02,12),bone,[.03,y,.28],[.8,0,.15]);}for(const side of [-1,1])detail(limbs['armPivot'+side],ellipsoid(.3,.37,.31,24),skinMat,[0,-.18,0]);}
+    if(['spitter','exploder','bloater','alpha'].includes(type)){for(let n=0;n<5;n++){const p=new THREE.Vector3(Math.sin(n*2.4)*.26,1+n*.09,.25);detail(group,ellipsoid(.09,.16,.13,16),bone,p.toArray(),[0,0,n*.3]);}}
+  }
   group.userData.detailMeshes=details.finish();group.userData.lodParts=lodParts;
   group.userData.limbs=limbs;return group;
 }
@@ -119,7 +155,7 @@ export function poseSurvivorArms(group,limbs=group.userData.limbs){
   const down=new THREE.Vector3(0,-1,0);
   for(const side of [-1,1]){
     const arm=limbs['armPivot'+side],forearm=limbs['elbowPivot'+side];arm.rotation.set(0,0,0);forearm.rotation.set(0,0,0);
-    const grip=new THREE.Vector3(side===1?0:-.1,side===1?-.14:-.06,side===1?.18:-.25).multiply(limbs.gun.scale).applyQuaternion(limbs.gun.quaternion).add(limbs.gun.position).sub(arm.position);
+    const point=side===1?new THREE.Vector3(0,-.14,.18):(limbs.gun.userData.supportGrip?.clone()||new THREE.Vector3(-.1,-.06,-.25));const grip=point.multiply(limbs.gun.scale).applyQuaternion(limbs.gun.quaternion).add(limbs.gun.position).sub(arm.position);
     const direction=grip.clone().normalize(),bend=new THREE.Vector3(side*.4,-1,.15);bend.addScaledVector(direction,-bend.dot(direction)).normalize();
     const elbow=grip.clone().multiplyScalar(.5).addScaledVector(bend,Math.sqrt(Math.max(.0064,.46*.46-grip.lengthSq()/4)));
     const upper=limbs['upperArm'+side];upper.position.copy(elbow).multiplyScalar(.5);upper.scale.y=elbow.length()/.32;upper.quaternion.setFromUnitVectors(down,elbow.clone().normalize());

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-export function findRoute(start,goal,obstacles,bounds={minX:-36,maxX:36,minZ:-182,maxZ:24},step=1.5){
+export function findRoute(start,goal,obstacles,bounds={minX:-36,maxX:36,minZ:-270,maxZ:24},step=1.5){
   const w=Math.floor((bounds.maxX-bounds.minX)/step)+1,h=Math.floor((bounds.maxZ-bounds.minZ)/step)+1;
   const blocked=new Uint8Array(w*h);const cell=(x,z)=>({x:bounds.minX+x*step,z:bounds.minZ+z*step});
   for(const o of obstacles){const a=Math.max(0,Math.floor((o.minX-.6-bounds.minX)/step)),b=Math.min(w-1,Math.ceil((o.maxX+.6-bounds.minX)/step)),c=Math.max(0,Math.floor((o.minZ-.6-bounds.minZ)/step)),d=Math.min(h-1,Math.ceil((o.maxZ+.6-bounds.minZ)/step));for(let z=c;z<=d;z++)for(let x=a;x<=b;x++){const p=cell(x,z);if(p.x>o.minX-.6&&p.x<o.maxX+.6&&p.z>o.minZ-.6&&p.z<o.maxZ+.6)blocked[z*w+x]=1;}}
@@ -16,7 +16,7 @@ export function findRoute(start,goal,obstacles,bounds={minX:-36,maxX:36,minZ:-18
 export class Navigation {
   constructor(game){this.game=game;this.reset();}
   reset(){this.path=[];this.timer=0;this.lastPosition=new THREE.Vector3(Infinity,0,0);this.lastKey='';this.goal=new THREE.Vector3();this.action='FOLLOW ROUTE';}
-  chooseGoal(){const g=this.game,m=g.mission,s=m.stage,p=g.player.position,room=g.world.routeRooms[m.index];
+  chooseGoal(){const g=this.game,m=g.mission,s=m.stage,p=g.player.position,room=g.world.routeRooms[m.index];if(g.campaign?.mode==='endless'){this.action='ENDLESS SURVIVAL / CLEAR INFECTED';return g.zombies.find(z=>!z.dead)?.position.clone()||p.clone();}
     if(m.readyToBoard){this.action='BOARD RESCUE HELICOPTER [E]';return g.helicopter.boardingPosition.clone();}
     if(m.looted&&m.killsLeft){let enemy=null,best=Infinity;for(const z of g.zombies){if(z.dead)continue;const d=z.position.distanceToSquared(p);if(d<best){best=d;enemy=z;}}this.action=enemy?'CLEAR HOSTILES':'HOLD / INFECTED INBOUND';return enemy?enemy.position.clone():m.target;}
     if(room){const inside=Math.abs(p.x-room.x)<5.7&&Math.abs(p.z-room.z)<5.7,entry=new THREE.Vector3(room.front-room.side*2,0,room.z);if(!inside&&entry.distanceTo(p)>2.5){this.action='ENTER LIT DOORWAY';return entry;}this.action='OPEN GOLD SUPPLY CHEST';return new THREE.Vector3(room.x-room.side*1.7,0,room.z);}
